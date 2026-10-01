@@ -1,0 +1,50 @@
+@use "@/shared/styles/mixins" as *;
+
+.homepagechart {
+    width: 100%;
+    height: auto;
+    border-radius: 20px;
+    @include liquid-glass($angle: 130deg, $bright-length: 8%, $bright: rgba(255, 255, 255, 0.151));  
+    display: flex;
+    gap: 0px;
+
+    &__popular {
+        @include liquid-glass($angle: 130deg, $bright-length: 8%, $bright: rgba(255, 255, 255, 0.151));
+        border-radius: inherit;
+        padding: 16px;
+        min-width: 240px;
+        font-weight: 200;
+
+        &-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+
+            .DashboardObjectItem {
+                border-radius: 8px;
+                display: flex;
+                justify-content: flex-start;
+                gap: 8px;
+                align-items: center;
+                padding: 8px 8px;
+                @include liquid-glass($angle: 130deg, $bright-length: 8%, $bright: rgba(255, 255, 255, 0.151));
+
+                &--active {
+                    border-radius: 8px;
+                    display: flex;
+                    justify-content: flex-start;
+                    gap: 8px;
+                    align-items: center;
+                    padding: 8px 8px;
+                    @include liquid-glass($angle: 130deg, $bright-length: 20%, $bright: rgba(255, 255, 255, 0.301));
+                }
+            }
+        }
+    }
+
+    &__chart {
+        padding: 16px;
+        font-weight: 200;
+    }
+}

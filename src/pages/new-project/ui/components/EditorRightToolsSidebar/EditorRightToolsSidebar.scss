@@ -1,0 +1,59 @@
+@use "@/shared/styles/mixins" as *;
+
+.editor-right-tools-sidebar {
+    --sidebar-width: 280px;
+    width: var(--sidebar-width);
+    flex: 0 0 var(--sidebar-width);
+    align-self: stretch;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: color-mix(in oklch, var(--bg) 96%, white);
+    border-left: 1px solid var(--line-soft);
+
+    &__tabs-body {
+        height: 100%;
+    }
+    
+    &__tabs {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+
+        &-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+            height: 36px;
+            font-size: 14px;
+            border-bottom: 1px solid color-mix(in oklch, var(--bg) 80%, white);
+            cursor: pointer;
+
+            &:not(:last-child) {
+                border-right: 1px solid color-mix(in oklch, var(--bg) 80%, white);
+            }
+
+            &:hover {
+                background: var(--bg);
+            }
+
+            svg {
+                max-height: 18px;
+                max-width: 18px;
+            }
+
+            &--active {
+                background: var(--primary-wash);
+                color: var(--primary);
+                cursor: default;
+
+                &:hover {
+                    background: var(--primary);
+                }
+            }
+        }
+    }
+}

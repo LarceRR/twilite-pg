@@ -1,0 +1,59 @@
+@use "@/shared/styles/mixins" as *;
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0px 8px 0px 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    width: 380px;
+    background-color: var(--bg)!important;
+    @include liquid-glass($angle: 142deg, $bright-length: 8%, $bright: rgba(255, 255, 255, 0.199));
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: #00000020;
+    }
+
+    &__icon {
+        display: inline-flex;
+        flex-shrink: 0;
+    }
+
+    &__input {
+        border: unset;
+        width: 100%;
+        min-width: 0;
+        background: unset;
+        font-size: 14px;
+        color: var(--text);
+
+        &:focus-visible {
+            outline: unset;
+        }
+    }
+
+    &__os-keybind {
+      flex-shrink: 0;
+    }
+
+    &--field {
+        width: 100%;
+        min-width: 0;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: 6px;
+        cursor: text;
+        box-sizing: border-box;
+    }
+
+    &.is-disabled {
+        opacity: 0.45;
+        cursor: default;
+    }
+}

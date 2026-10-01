@@ -1,0 +1,171 @@
+@use "@/shared/styles/mixins" as *;
+
+.sidebar {
+    --sidebar-width: 240px;
+    width: var(--sidebar-width);
+    flex: 0 0 var(--sidebar-width);
+    align-self: stretch;
+    min-height: 0;
+    overflow: hidden;
+    padding: 16px;
+    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease-in-out;
+    background: color-mix(in oklch, var(--bg) 96%, white);
+    border-right: 1px solid var(--line-soft);
+
+    @include tablet {
+        display: none;
+    }
+
+    &__routes {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 auto;
+        gap: 16px;
+        font-size: 14px;
+        font-weight: 200;
+
+        &-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            &__label {
+                text-transform: uppercase;
+                font-size: 10px;
+                opacity: 0.5;
+                letter-spacing: 1px;
+                padding: 0px 12px;
+                margin-bottom: 10px;
+                margin-top: 6px;
+            }
+
+            &__links {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+                gap: 2px;
+
+                &-link {
+                    padding: 8px 12px;
+                    width: 100%;
+                    border-radius: 4px;
+                    color: var(--text);
+                    text-decoration: unset;
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                    cursor: pointer;
+
+                    span {
+                        white-space: nowrap;
+                    }
+
+                    svg {
+                        min-width: 20px;
+                        min-height: 20px;
+                    }
+
+                    &:hover {
+                        background: var(--bg);
+                    }
+                }
+
+                .active {
+                    background: var(--primary-wash);
+                    color: var(--primary);
+
+                    &:hover {
+                        cursor: default;
+                    }
+                }
+            }
+        }
+    }
+
+    &__promotion {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+
+        img {
+            width: 48%;
+            max-height: 100%;
+            height: auto;
+            object-fit: contain;
+            filter: brightness(0.5) hue-rotate(-524deg);
+        }
+
+        &-text {
+            font-size: 14px;
+            font-weight: 200;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+    }
+
+    &__version {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 200;
+        flex-direction: column;
+        white-space: nowrap;
+
+        .sidebar__routes-wrapper__links-link {
+            justify-content: center;
+        }
+
+        span {
+            opacity: 0.6;
+        }
+    }
+}
+
+.collapsed {
+    --sidebar-width: 64px;
+
+    .sidebar__routes-wrapper__links {
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sidebar__routes {
+        gap: 10px;
+    }
+
+    .sidebar__routes-wrapper__links-link {
+        padding: 8px;
+        width: auto;
+
+        span {
+            display: none;
+        }
+    }
+
+    .sidebar__version span {
+        display: none;
+    }
+
+    .sidebar__routes-wrapper__label {
+        display: none;
+    }
+
+    .active {
+        background: var(--primary-wash);
+        color: var(--primary);
+    }
+}

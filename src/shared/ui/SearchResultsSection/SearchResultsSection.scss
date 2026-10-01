@@ -1,0 +1,22 @@
+.search-results-section {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+
+  &__title {
+    margin: 0;
+    padding: 0 4px;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}

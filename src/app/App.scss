@@ -1,0 +1,5 @@
+@use "@/shared/styles/mixins" as *;
+
+.liquid-glass {
+  @include liquid-glass($angle: 160deg, $bright-length: 20%, $bright: rgba(255, 255, 255, 0.301));
+}

@@ -1,0 +1,173 @@
+@use "@/shared/styles/mixins" as *;
+
+.editor-pixel-art-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+
+  &__stage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    transform-origin: 0 0;
+    will-change: transform;
+    background-color: color-mix(in oklch, var(--bg) 88%, white);
+    background-image:
+      linear-gradient(45deg, color-mix(in oklch, var(--bg) 70%, #888) 25%, transparent 25%),
+      linear-gradient(-45deg, color-mix(in oklch, var(--bg) 70%, #888) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, color-mix(in oklch, var(--bg) 70%, #888) 75%),
+      linear-gradient(-45deg, transparent 75%, color-mix(in oklch, var(--bg) 70%, #888) 75%);
+    background-size: 16px 16px;
+    background-position:
+      0 0,
+      0 8px,
+      8px -8px,
+      -8px 0;
+    outline: 1px solid color-mix(in oklch, var(--bg) 70%, white);
+    box-shadow: 0 8px 24px color-mix(in oklch, black 18%, transparent);
+  }
+
+  &__onion {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    &--prev {
+      opacity: 0.4;
+    }
+
+    &--next {
+      opacity: 0.22;
+    }
+  }
+
+  &__bitmap {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    touch-action: none;
+    cursor: var(--editor-cursor, crosshair);
+  }
+
+  &__grid {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    color: color-mix(in oklch, var(--text) 32%, transparent);
+
+    path {
+      fill: none;
+      stroke: currentcolor;
+      stroke-width: 1;
+      shape-rendering: crispEdges;
+    }
+  }
+
+  &__status {
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    left: 50%;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    box-shadow: 0 4px 16px color-mix(in oklch, black 14%, transparent);
+    @include liquid-glass($angle: 160deg, $bright-length: 20%, $bright: rgba(255, 255, 255, 0.301));
+  }
+
+  &__zoom-controls {
+    position: absolute;
+    z-index: 2;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    box-shadow: 0 4px 16px color-mix(in oklch, black 14%, transparent);
+    backdrop-filter: blur(8px);
+    background: color-mix(in oklch, var(--bg) 96%, white);
+    border-top: 1px solid var(--line-soft);
+    border-left: 1px solid var(--line-soft);
+
+    button {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      place-items: center;
+      border: 0;
+      border-radius: 5px;
+      color: var(--text);
+      background: transparent;
+      cursor: pointer;
+
+      &:hover:not(:disabled) {
+        background: var(--bg);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 1px;
+      }
+
+      &:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+
+      &.is-active {
+        color: var(--primary);
+        background: var(--primary-wash);
+      }
+    }
+
+    output {
+      min-width: 38px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+  }
+
+  &--pan-ready {
+    cursor: grab;
+
+    .editor-pixel-art-canvas__bitmap {
+      cursor: grab;
+    }
+  }
+
+  &--panning {
+    cursor: grabbing;
+
+    .editor-pixel-art-canvas__bitmap {
+      cursor: grabbing;
+    }
+  }
+}

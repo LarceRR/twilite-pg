@@ -1,0 +1,270 @@
+@import url('https://fonts.googleapis.com/css2?family=Geologica:wght,CRSV@100..900,0&display=swap');
+
+:root {
+  color-scheme: light;
+  --font-body: 'Geologica', sans-serif;
+  --font-heading: 'Geologica', sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* --- Основной фон и поверхность (нейтральные теплые тона) --- */
+  --bg: oklch(97% 0.008 40);
+  --surface: oklch(99% 0.005 40);
+  --surface-raised: oklch(100% 0.003 40);
+  --nav-bg: color-mix(in oklch, var(--bg) 94%, transparent);
+  --preview-bg: var(--bg);
+
+  /* --- Текст (чистый нейтральный) --- */
+  --text: oklch(22% 0.005 40);
+  --text-muted: oklch(52% 0.008 40);
+
+  /* --- Линии и разделители --- */
+  --line: oklch(85% 0.01 40);
+  --line-soft: color-mix(in oklch, var(--surface) 95%, white);
+
+  /* --- Основной акцент (Electric Indigo — главный цвет 2026) --- */
+  --accent: oklch(0.83 0.16 79.85);
+  --accent-ink: oklch(98% 0.005 280);
+  --accent-wash: oklch(0.92 0.08 79.85 / 0.14);
+  --accent-line: oklch(72% 0.12 280);
+  --accent-shadow: oklch(52% 0.24 280 / 0.2);
+
+  /* --- Трендовые акценты 2026 (без зеленого) --- */
+  --persimmon: oklch(62% 0.18 35);
+  --aura-pink: oklch(68% 0.16 10);
+  --digital-lavender: oklch(62% 0.14 300);
+  --deep-plum: oklch(32% 0.12 310);
+  --cobalt: oklch(45% 0.22 245);
+
+  /* --- Дополнительные акценты --- */
+  --coral: oklch(62% 0.18 30);
+  --amber: oklch(65% 0.16 70);
+  --violet: oklch(54% 0.16 300);
+
+  /* --- Фокус --- */
+  --focus: oklch(48% 0.2 260);
+
+  --primary: oklch(0.83 0.16 79.85);
+  --primary-wash: oklch(0.92 0.08 79.85 / 0.17);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* --- Темный фон (глубокий нейтральный, почти черный) --- */
+  --bg: oklch(0.18 0.04 254.34);
+  --surface: color-mix(in oklch, var(--bg) 93%, white);
+  --surface-raised: oklch(23% 0.012 40);
+  --nav-bg: color-mix(in oklch, var(--bg) 93%, transparent);
+  --preview-bg: var(--bg);-preview-bg: oklch(21% 0.012 40);
+
+  /* --- Светлый текст на темном --- */
+  --text: oklch(0.78 0.02 242.99);
+  --text-muted: oklch(68% 0.01 40);
+
+  /* --- Линии в темной теме --- */
+  --line: oklch(30% 0.015 40);
+  --line-soft: color-mix(in oklch, var(--surface) 95%, white);
+
+  /* --- Акцент (яркий индиго в темной теме) --- */
+  --accent: oklch(0.83 0.16 79.85);
+  --accent-ink: oklch(16% 0.01 280);
+  --accent-wash: oklch(0.92 0.08 79.85 / 0.14);
+  --accent-line: oklch(45% 0.1 280);
+  --accent-shadow: oklch(72% 0.2 280 / 0.15);
+
+  /* --- Трендовые акценты в темной теме (без зеленого) --- */
+  --persimmon: oklch(72% 0.16 35);
+  --aura-pink: oklch(78% 0.14 10);
+  --digital-lavender: oklch(72% 0.12 300);
+  --deep-plum: oklch(42% 0.12 310);
+  --cobalt: oklch(55% 0.2 245);
+
+  --coral: oklch(72% 0.16 30);
+  --amber: oklch(75% 0.14 70);
+  --violet: oklch(68% 0.14 300);
+
+  --focus: oklch(75% 0.15 260);
+
+  --primary: oklch(0.83 0.16 79.85);
+  --primary-wash: oklch(0.92 0.08 79.85 / 0.17);
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+#root > * {
+  height: 100%;
+  min-height: 0;
+}
+
+/* --- Сбросы и база --- */
+* {
+  box-sizing: border-box;
+}
+html {
+  min-width: 320px;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+body {
+  min-width: 320px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  /* padding: 24px; */
+}
+
+button {
+  outline: none;
+  border: none;
+}
+
+/* --- ЗАГОЛОВКИ - жирные --- */
+h1 {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+h2 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+h4 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+h5 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* --- ТЕКСТ - Geologica с разными весами --- */
+p {
+  font-family: var(--font-body);
+  font-weight: 400;
+  margin: 0;
+}
+span {
+  font-family: var(--font-body);
+}
+a {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+li {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+strong {
+  font-weight: 700;
+}
+em {
+  font-weight: 300;
+}
+small {
+  font-weight: 300;
+}
+blockquote {
+  font-family: var(--font-body);
+  font-weight: 300;
+}
+cite {
+  font-family: var(--font-body);
+  font-weight: 300;
+}
+mark {
+  font-weight: 600;
+}
+sub, sup {
+  font-weight: 300;
+}
+time {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+address {
+  font-family: var(--font-body);
+  font-weight: 300;
+}
+
+/* --- Интерактивные элементы --- */
+button {
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+}
+input {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+textarea {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+select {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+label {
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+option {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+/* --- Фокус --- */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* --- Выделение текста --- */
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

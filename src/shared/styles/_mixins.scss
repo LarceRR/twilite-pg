@@ -1,0 +1,73 @@
+@mixin desktop {
+  @media (max-width: 1920px) {
+    @content;
+  }
+}
+
+@mixin laptop {
+  @media (max-width: 1280px) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: 768px) {
+    @content;
+  }
+}
+
+@mixin mobile {
+  @media (max-width: 420px) {
+    @content;
+  }
+}
+
+@mixin down($breakpoint) {
+  @media (max-width: $breakpoint) {
+    @content;
+  }
+}
+
+/// Миксин для градиентного бордера 1px
+/// Наследует border-radius от родительского элемента
+/// @param {Color} $bright - цвет ярких углов
+/// @param {Color} $dim - цвет остальной части бордера
+/// @param {Number} $angle - угол направления градиента (0 = сверху вниз)
+/// @param {Number} $bright-length - длина ярких пятен в процентах (0-50)
+@mixin liquid-glass(
+  $bright: rgba(255, 255, 255, 0.5),
+  $dim: rgba(255, 255, 255, 0.075),
+  $angle: 45deg,
+  $bright-length: 8%
+) {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: color-mix(in oklch, var(--bg) 96%, white);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit; // Наследуется от родителя
+    padding: 1px;
+    background: linear-gradient(
+      $angle,
+      $bright 0%,
+      $bright $bright-length,
+      $dim calc($bright-length * 2),
+      $dim calc(100% - $bright-length * 2),
+      $bright calc(100% - $bright-length),
+      $bright 100%
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+}

@@ -1,0 +1,95 @@
+@use "@/shared/styles/mixins" as *;
+
+.search-results {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  z-index: 102;
+  display: flex;
+  width: min(900px, calc(100vw - 32px));
+  max-height: min(555px, calc(100vh - 96px));
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--bg);
+  transform: translateX(-50%) translateY(-10px) scale(0.98);
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: top center;
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 220ms var(--ease-out);
+  @include liquid-glass(
+    $angle: 150deg,
+    $bright-length: 20%,
+    $bright: rgba(255, 255, 255, 0.158)
+  );
+
+  &--open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  &--closed {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-10px) scale(0.98);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  &__hint {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 300;
+  }
+
+  &__count {
+    display: grid;
+    min-width: 24px;
+    height: 24px;
+    place-items: center;
+    padding: 0 8px;
+    border-radius: 8px;
+    background: var(--accent-wash);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  &__body {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(var(--search-cols, 4), minmax(0, 1fr));
+    gap: 12px;
+    overflow: auto;
+    padding: 12px 16px 16px;
+  }
+}
+
+@include tablet {
+  .search-results {
+    &__body {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@include mobile {
+  .search-results {
+    top: 48px;
+    width: calc(100vw - 24px);
+
+    &__body {
+      grid-template-columns: 1fr;
+    }
+  }
+}

@@ -1,0 +1,164 @@
+@use "@/shared/styles/mixins" as *;
+
+.editor-animation-timeline {
+  --sidebar-height: 140px;
+  height: var(--sidebar-height);
+  flex: 0 0 var(--sidebar-height);
+  align-self: stretch;
+  width: 100%;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in oklch, var(--bg) 96%, white);
+  border-top: 1px solid var(--line-soft);
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    border-bottom: 1px solid color-mix(in oklch, var(--bg) 80%, white);
+  }
+
+  &__tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+
+    &--labeled {
+      width: auto;
+      gap: 6px;
+      padding: 0 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    border: 1px solid color-mix(in oklch, var(--bg) 70%, white);
+    border-radius: 4px;
+    background: color-mix(in oklch, var(--bg) 96%, white);
+    color: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    &.is-active {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+  }
+
+  &__duration {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  &__duration-input.input-wrapper {
+    width: 72px;
+    flex: 0 0 72px;
+  }
+
+  &__count {
+    margin-left: auto;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.65;
+  }
+
+  &__error {
+    padding: 6px 10px;
+    color: #b42318;
+    font-size: 12px;
+  }
+
+  &__strip {
+    position: relative;
+    flex: 1 1 0;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Horizontal scrollbar must not change strip height (ResizeObserver feedback loop). */
+    scrollbar-gutter: stable;
+
+    &.is-dragging {
+      cursor: grabbing;
+    }
+  }
+
+  &__frame {
+    position: relative;
+    flex: 0 0 auto;
+    align-self: stretch;
+    width: auto;
+    height: auto;
+    aspect-ratio: 1;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklch, var(--bg) 70%, white);
+    border-radius: 6px;
+    color: inherit;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    background-color: color-mix(in oklch, var(--bg) 92%, white);
+    background-image:
+      linear-gradient(45deg, color-mix(in oklch, var(--bg) 70%, #888) 25%, transparent 25%),
+      linear-gradient(-45deg, color-mix(in oklch, var(--bg) 70%, #888) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, color-mix(in oklch, var(--bg) 70%, #888) 75%),
+      linear-gradient(-45deg, transparent 75%, color-mix(in oklch, var(--bg) 70%, #888) 75%);
+    background-size: 8px 8px;
+    background-position:
+      0 0,
+      0 4px,
+      4px -4px,
+      -4px 0;
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+
+    &.is-active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    &.is-dragging {
+      z-index: 3;
+      cursor: grabbing;
+      transition: none;
+      box-shadow: 0 10px 24px rgb(0 0 0 / 28%);
+    }
+  }
+
+  &__thumb {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    pointer-events: none;
+  }
+
+  &__index {
+    position: absolute;
+    left: 4px;
+    bottom: 4px;
+    min-width: 16px;
+    padding: 0 4px;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 62%);
+    color: white;
+    font-size: 10px;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+}

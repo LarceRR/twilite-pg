@@ -1,0 +1,52 @@
+.layer-settings {
+  width: 100%;
+  height: 140px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid color-mix(in oklch, var(--bg) 80%, white);
+  box-sizing: border-box;
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+
+    span:first-child {
+      width: 56px;
+      flex: 0 0 56px;
+      opacity: 0.75;
+    }
+
+    select {
+      flex: 1;
+      min-width: 0;
+      height: 28px;
+      border: 1px solid color-mix(in oklch, var(--bg) 70%, white);
+      border-radius: 4px;
+      background: color-mix(in oklch, var(--bg) 96%, white);
+      color: inherit;
+      padding: 0 8px;
+      font: inherit;
+    }
+
+    .layer-settings__name.input-wrapper {
+      flex: 1;
+      width: auto;
+      min-width: 0;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__value {
+    width: 40px;
+    text-align: right;
+    opacity: 0.75;
+  }
+}

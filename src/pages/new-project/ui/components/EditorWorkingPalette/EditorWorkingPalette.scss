@@ -1,0 +1,60 @@
+@use "@/shared/styles/mixins" as *;
+
+.editor-working-palette {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  flex: 0 0 40px;
+  min-width: 0;
+  padding: 0 16px;
+  @include liquid-glass($angle: 154deg, $bright-length: 6%, $bright: rgba(255, 255, 255, 0.301));
+  border-radius: 50px;
+
+  &__empty {
+    color: var(--text-muted, color-mix(in oklch, var(--text) 55%, transparent));
+    font-size: 13px;
+  }
+
+  &__swatches {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  &__swatch {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    padding: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, black 25%, transparent);
+
+    &:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+    }
+  }
+
+  &__clear {
+    margin-left: auto;
+    flex: 0 0 auto;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    background: color-mix(in oklch, var(--bg) 96%, white);
+    color: inherit;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    @include liquid-glass($angle: 130deg, $bright-length: 20%, $bright: rgba(255, 255, 255, 0.301));
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+}

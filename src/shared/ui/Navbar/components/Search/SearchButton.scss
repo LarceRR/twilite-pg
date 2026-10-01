@@ -1,0 +1,11 @@
+@use "@/shared/styles/mixins" as *;
+
+button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 36px;
+    border-radius: 8px;
+    @include liquid-glass($angle: 130deg, $bright-length: 20%, $bright: rgba(255, 255, 255, 0.199));
+}

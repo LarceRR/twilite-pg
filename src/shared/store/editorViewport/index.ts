@@ -1,0 +1,25 @@
+export {
+  useEditorViewportStore,
+  __resetEditorViewportStoreForTests,
+  type EditorViewportState,
+} from "./model/editorViewportStore";
+export {
+  FIT_MARGIN_PX,
+  GRID_MIN_ZOOM,
+  MAX_VIEWPORT_ZOOM,
+  MIN_VISIBLE_CANVAS_PX,
+  MIN_VIEWPORT_ZOOM,
+  clampViewportPan,
+  clampViewportZoom,
+  clientPointToDocumentPixel,
+  clientPointToDocumentPixelClamped,
+  createPixelGridPath,
+  fitViewport,
+  zoomAtPoint,
+  type DocumentPixel,
+  type DocumentSize,
+  type RectLike,
+  type ViewportPoint,
+  type ViewportSize,
+  type ViewportTransform,
+} from "./model/viewport";
