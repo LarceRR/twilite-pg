@@ -15,6 +15,10 @@ import { buildLocalManifest, fileSlug, toSubmitManifest } from "@/shared/pixelOb
 import { blobBytes, pixelsToPngBlob, toImageData } from "@/shared/pixelObject/png";
 import { compositeOnBackground, packSheet, scaleNearest } from "@/shared/pixelObject/pixels";
 import { sheetTooLarge, submitBlocker } from "@/shared/pixelObject/readiness";
+import {
+  activeFrameIndexFromIds,
+  selectActiveExportFrame,
+} from "@/shared/pixelObject/selectActiveExportFrame";
 import { buildTpoZip, zipBlob } from "@/shared/pixelObject/zip";
 import { ColorPicker, ColorPickerSwatchTrigger } from "@/shared/ui/ColorPicker";
 import Input from "@/shared/ui/Input/Input";
@@ -107,7 +111,12 @@ export const EditorExport = () => {
 
   const prepareFramePng = async () => {
     const document = captureExportFrames();
-    const frame = document.frames[0];
+    const state = useEditorCanvasStore.getState();
+    const activeIndex = activeFrameIndexFromIds(
+      state.frames.map((frame) => frame.id),
+      state.activeFrameId,
+    );
+    const frame = selectActiveExportFrame(document.frames, activeIndex);
     if (!frame) {
       throw new Error("Нет кадра для экспорта");
     }
