@@ -20,4 +20,10 @@ describe("submitBlocker", () => {
     expect(submitBlocker({ ...ready, canSubmit: false })).toMatch(/прав/);
     expect(submitBlocker({ ...ready, frameCount: 65 })).toMatch(/64/);
   });
+
+  it("blocks catalog submit when canvas exceeds canvasMax", () => {
+    expect(
+      submitBlocker({ ...ready, width: 320, height: 200, canvasMax: 160 }),
+    ).toMatch(/320×200/);
+  });
 });

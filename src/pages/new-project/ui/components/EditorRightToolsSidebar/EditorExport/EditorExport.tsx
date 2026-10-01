@@ -3,18 +3,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { downloadBlob } from "@/shared/lib/download";
 import { hasAnyPermission, TPG_PERMISSIONS } from "@/shared/lib/rbac";
 import { hexToRgba, useEditorCanvasStore } from "@/shared/store/editorCanvas";
+import { usePixelObjectEditStore } from "@/shared/store/pixelObjectEdit";
+import { usePixelObjectLimitsStore } from "@/shared/store/pixelObjectLimits";
 import { useSessionStore } from "@/shared/store/session";
-import {
-  moderationErrorMessage,
-  submitPixelObject,
-  uploadPixelSheet,
-} from "@/shared/api/pixelObjects";
+import { mapApiErrorMessage } from "@/shared/api/mapApiError";
+import { applyCanvasFitToDocument } from "@/shared/pixelObject/applyCanvasFit";
+import { canvasOversizeReason, exceedsCanvasMax } from "@/shared/pixelObject/canvasFit";
 import { captureExportFrames } from "@/shared/pixelObject/capture";
 import { EXPORT_SCALES, type ExportScale } from "@/shared/pixelObject/constants";
-import { buildLocalManifest, fileSlug, toSubmitManifest } from "@/shared/pixelObject/manifest";
+import { buildLocalManifest, fileSlug } from "@/shared/pixelObject/manifest";
 import { blobBytes, pixelsToPngBlob, toImageData } from "@/shared/pixelObject/png";
 import { compositeOnBackground, packSheet, scaleNearest } from "@/shared/pixelObject/pixels";
-import { sheetTooLarge, submitBlocker } from "@/shared/pixelObject/readiness";
+import { submitBlocker } from "@/shared/pixelObject/readiness";
 import {
   activeFrameIndexFromIds,
   selectActiveExportFrame,
@@ -22,6 +22,8 @@ import {
 import { buildTpoZip, zipBlob } from "@/shared/pixelObject/zip";
 import { ColorPicker, ColorPickerSwatchTrigger } from "@/shared/ui/ColorPicker";
 import Input from "@/shared/ui/Input/Input";
+import { CanvasOversizeActions } from "./CanvasOversizeActions";
+import { useCatalogSubmit } from "./useCatalogSubmit";
 import "./EditorExport.scss";
 
 const NO_PERMISSIONS: string[] = [];
@@ -69,21 +71,40 @@ export const EditorExport = () => {
     TPG_PERMISSIONS.PIXEL_OBJECTS_CREATE,
   ]);
   const showCatalogPanel = canSubmit;
+  const limits = usePixelObjectLimitsStore((state) => state.limits);
+  const editingObjectId = usePixelObjectEditStore((state) => state.editingObjectId);
+  const editTitle = usePixelObjectEditStore((state) => state.title);
+  const setEditTitle = usePixelObjectEditStore((state) => state.setTitle);
 
   const [panel, setPanel] = useState<ExportPanel>("download");
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(editTitle);
   const [scale, setScale] = useState<ExportScale>(1);
   const [transparent, setTransparent] = useState(true);
   const [flatColor, setFlatColor] = useState("#ffffff");
-  const [busy, setBusy] = useState(false);
   const [downloading, setDownloading] = useState<DownloadKind | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [fitBusy, setFitBusy] = useState(false);
   const previewRef = useRef<HTMLCanvasElement>(null);
+  const catalog = useCatalogSubmit(title);
+
+  useEffect(() => {
+    if (editTitle.length > 0) {
+      setTitle(editTitle);
+      setPanel("catalog");
+    }
+  }, [editTitle, editingObjectId]);
+
+  const oversizeReason = canvasOversizeReason({ width, height }, limits.canvasMax);
   const blocker = submitBlocker({
     title,
     frameCount,
     opaque,
     canSubmit,
+    width,
+    height,
+    canvasMax: limits.canvasMax,
+    maxFrames: limits.maxFrames,
+    titleMax: limits.titleMax,
   });
 
   useEffect(() => {
@@ -145,83 +166,52 @@ export const EditorExport = () => {
     return { local, png, slug: fileSlug(title) };
   };
 
-  const downloadFrame = async () => {
-    setError(null);
-    setDownloading("frame");
-    try {
-      const blob = await prepareFramePng();
-      downloadBlob(blob, `${fileSlug(title) || "export"}-frame.png`);
-    } catch (caught) {
-      setError(moderationErrorMessage(caught));
-    } finally {
-      setDownloading(null);
-    }
-  };
-
-  const downloadSheet = async () => {
-    setError(null);
-    setDownloading("sheet");
-    try {
-      const packed = await preparePackage();
-      downloadBlob(packed.png, `${packed.slug || "export"}-sheet.png`);
-    } catch (caught) {
-      setError(moderationErrorMessage(caught));
-    } finally {
-      setDownloading(null);
-    }
-  };
-
-  const downloadTpo = async () => {
-    setError(null);
-    setDownloading("tpo");
-    try {
-      const packed = await preparePackage();
-      const bytes = buildTpoZip(JSON.stringify(packed.local, null, 2), await blobBytes(packed.png));
-      downloadBlob(zipBlob(bytes), `${packed.slug || "export"}.tpo.zip`);
-    } catch (caught) {
-      setError(moderationErrorMessage(caught));
-    } finally {
-      setDownloading(null);
-    }
-  };
-
-  const runDownload = (kind: DownloadKind) => {
+  const runDownload = async (kind: DownloadKind) => {
     if (downloading) {
       return;
     }
-    if (kind === "frame") {
-      void downloadFrame();
-    } else if (kind === "sheet") {
-      void downloadSheet();
-    } else {
-      void downloadTpo();
+    setDownloadError(null);
+    setDownloading(kind);
+    try {
+      if (kind === "frame") {
+        downloadBlob(await prepareFramePng(), `${fileSlug(title) || "export"}-frame.png`);
+      } else if (kind === "sheet") {
+        const packed = await preparePackage();
+        downloadBlob(packed.png, `${packed.slug || "export"}-sheet.png`);
+      } else {
+        const packed = await preparePackage();
+        const bytes = buildTpoZip(JSON.stringify(packed.local, null, 2), await blobBytes(packed.png));
+        downloadBlob(zipBlob(bytes), `${packed.slug || "export"}.tpo.zip`);
+      }
+    } catch (caught) {
+      setDownloadError(mapApiErrorMessage(caught));
+    } finally {
+      setDownloading(null);
     }
   };
 
-  const send = async () => {
-    if (blocker || busy) {
-      return;
-    }
-    setBusy(true);
-    setError(null);
+  const applyFit = (mode: "nearest-downscale" | "center-crop") => {
+    setFitBusy(true);
+    catalog.setError(null);
     try {
-      const packed = await preparePackage();
-      if (sheetTooLarge(packed.png.size)) {
-        throw new Error("Spritesheet слишком большой.");
+      const result = applyCanvasFitToDocument(limits.canvasMax, mode);
+      if (!result.ok) {
+        catalog.setError(result.reason);
       }
-      const mediaId = await uploadPixelSheet(packed.png);
-      const manifest = toSubmitManifest(packed.local, mediaId);
-      await submitPixelObject({ title: title.trim(), manifest });
-    } catch (caught) {
-      setError(moderationErrorMessage(caught));
     } finally {
-      setBusy(false);
+      setFitBusy(false);
     }
   };
 
   const exportSizeLabel = `${width}×${height}`;
   const frameLabel =
     frameCount === 1 ? "1 кадр" : frameCount >= 2 && frameCount <= 4 ? `${frameCount} кадра` : `${frameCount} кадров`;
+  const panelError = panel === "catalog" ? catalog.error : downloadError;
+  const submitDisabled =
+    blocker !== null ||
+    catalog.busy ||
+    fitBusy ||
+    exceedsCanvasMax({ width, height }, limits.canvasMax);
 
   return (
     <div className="editor-export">
@@ -236,6 +226,9 @@ export const EditorExport = () => {
             <span className="editor-export__badge">{frameLabel}</span>
             {!opaque ? (
               <span className="editor-export__badge editor-export__badge--warn">Нет непрозрачных пикселей</span>
+            ) : null}
+            {oversizeReason ? (
+              <span className="editor-export__badge editor-export__badge--warn">Больше {limits.canvasMax}px</span>
             ) : null}
           </div>
         </div>
@@ -344,7 +337,7 @@ export const EditorExport = () => {
                         type="button"
                         className="editor-export__format-action"
                         disabled={Boolean(downloading)}
-                        onClick={() => runDownload(id)}
+                        onClick={() => void runDownload(id)}
                       >
                         {isLoading ? <Loader2 size={16} className="editor-export__spin" /> : "Скачать"}
                       </button>
@@ -366,46 +359,71 @@ export const EditorExport = () => {
       ) : (
         <div className="editor-export__panel" role="tabpanel">
           <section className="editor-export__card editor-export__card--submit">
-            <h3 className="editor-export__card-title">Отправка на модерацию</h3>
+            <h3 className="editor-export__card-title">
+              {editingObjectId ? "Повторная отправка (PATCH)" : "Отправка на модерацию"}
+            </h3>
             <p className="editor-export__card-lead">
-              Будет загружен spritesheet и manifest формата TPO. После публикации объект появится в каталоге.
+              {editingObjectId
+                ? "Создаётся новая pending-ревизия. Текущая опубликованная версия остаётся доступной."
+                : "Будет загружен spritesheet и manifest формата TPO. После публикации объект появится в каталоге."}
             </p>
+            {oversizeReason ? (
+              <CanvasOversizeActions
+                reason={oversizeReason}
+                busy={fitBusy || catalog.busy}
+                onDownscale={() => applyFit("nearest-downscale")}
+                onCenterCrop={() => applyFit("center-crop")}
+              />
+            ) : null}
             <label className="editor-export__field">
               <span className="editor-export__label">Название объекта</span>
               <Input
                 variant="field"
                 className="editor-export__title"
                 value={title}
-                maxLength={80}
-                onChange={(event) => setTitle(event.target.value)}
+                maxLength={limits.titleMax}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                  setEditTitle(event.target.value);
+                }}
                 placeholder="Например: фонарь улицы"
               />
             </label>
-            {blocker ? <p className="editor-export__hint editor-export__hint--block">{blocker}</p> : null}
+            {blocker && !oversizeReason ? (
+              <p className="editor-export__hint editor-export__hint--block">{blocker}</p>
+            ) : null}
             <button
               type="button"
               className="editor-export__submit"
-              disabled={blocker !== null || busy}
-              onClick={() => void send()}
+              disabled={submitDisabled}
+              onClick={() => void catalog.send()}
             >
-              {busy ? (
+              {catalog.busy ? (
                 <>
                   <Loader2 size={16} className="editor-export__spin" />
                   Отправка…
                 </>
+              ) : editingObjectId ? (
+                "Отправить ревизию"
               ) : (
                 "Отправить на модерацию"
               )}
             </button>
 
-            {error ? (
-              <p className="editor-export__banner editor-export__banner--error" role="alert">
-                {error}
+            {catalog.success ? (
+              <p className="editor-export__banner editor-export__banner--ok" role="status">
+                {catalog.success}
               </p>
             ) : null}
           </section>
         </div>
       )}
+
+      {panelError ? (
+        <p className="editor-export__banner editor-export__banner--error" role="alert">
+          {panelError}
+        </p>
+      ) : null}
     </div>
   );
 };

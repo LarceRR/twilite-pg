@@ -1,5 +1,6 @@
-import { apiFetch, ApiError } from "@/shared/api/http";
-import { MAX_SHEET_BYTES } from "@/shared/pixelObject/constants";
+import { apiFetch } from "@/shared/api/http";
+import { mapApiErrorMessage } from "@/shared/api/mapApiError";
+import { DEFAULT_PIXEL_OBJECT_LIMITS } from "@/shared/contracts";
 import type { SubmitTpoManifest } from "@/shared/pixelObject/manifest";
 
 export type PixelObjectMobileDto = {
@@ -36,72 +37,50 @@ export type PixelObjectDto = {
   reviewedAt: string | null;
 };
 
-type UploadTicket = {
-  assetId: string;
-  uploadUrl: string;
-  headers: {
-    "Content-Type": string;
-    "Cache-Control": string;
-  };
+export type PixelObjectListPage = {
+  items: PixelObjectDto[];
+  nextCursor: string | null;
 };
 
-export async function uploadPixelSheet(sheet: Blob): Promise<string> {
-  if (sheet.size > MAX_SHEET_BYTES) {
-    throw new Error("Spritesheet слишком большой.");
+export type ListPixelObjectsQuery = {
+  cursor?: string | null;
+  limit?: number;
+};
+
+function listQuery(path: string, query?: ListPixelObjectsQuery): string {
+  const params = new URLSearchParams();
+  if (query?.cursor) {
+    params.set("cursor", query.cursor);
   }
-
-  const ticketResponse = await apiFetch("/v1/media/uploads", {
-    method: "POST",
-    body: JSON.stringify({
-      kind: "pixel-sheet",
-      contentType: "image/png",
-      byteSize: sheet.size,
-    }),
-  });
-  const ticket = (await ticketResponse.json()) as UploadTicket;
-
-  const upload = await fetch(ticket.uploadUrl, {
-    method: "PUT",
-    headers: {
-      "Content-Type": ticket.headers["Content-Type"],
-      "Cache-Control": ticket.headers["Cache-Control"],
-    },
-    body: sheet,
-  });
-  if (!upload.ok) {
-    throw new Error(`Не удалось загрузить spritesheet (${upload.status})`);
+  if (typeof query?.limit === "number") {
+    params.set("limit", String(query.limit));
   }
-
-  await apiFetch(`/v1/media/uploads/${ticket.assetId}/confirm`, { method: "POST" });
-  return ticket.assetId;
+  const suffix = params.toString();
+  return suffix.length > 0 ? `${path}?${suffix}` : path;
 }
 
-export async function submitPixelObject(input: {
-  title: string;
-  manifest: SubmitTpoManifest;
-}): Promise<PixelObjectDto> {
-  const response = await apiFetch("/v1/tpg/pixel-objects", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
-  return response.json() as Promise<PixelObjectDto>;
+async function readListPage(path: string, query?: ListPixelObjectsQuery): Promise<PixelObjectListPage> {
+  const response = await apiFetch(listQuery(path, query));
+  const data = (await response.json()) as {
+    items?: PixelObjectDto[];
+    nextCursor?: string | null;
+  };
+  return {
+    items: Array.isArray(data.items) ? data.items : [],
+    nextCursor: typeof data.nextCursor === "string" ? data.nextCursor : null,
+  };
 }
 
-export async function resubmitPixelObject(
-  id: string,
-  input: { title: string; manifest: SubmitTpoManifest },
-): Promise<PixelObjectDto> {
-  const response = await apiFetch(`/v1/tpg/pixel-objects/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(input),
-  });
-  return response.json() as Promise<PixelObjectDto>;
-}
-
+/** @deprecated Prefer listPublishedPixelObjectsPage for cursor pagination. */
 export async function listPublishedPixelObjects(): Promise<PixelObjectDto[]> {
-  const response = await apiFetch("/v1/tpg/pixel-objects");
-  const data = (await response.json()) as { items: PixelObjectDto[] };
-  return data.items;
+  const page = await listPublishedPixelObjectsPage();
+  return page.items;
+}
+
+export async function listPublishedPixelObjectsPage(
+  query?: ListPixelObjectsQuery,
+): Promise<PixelObjectListPage> {
+  return readListPage("/v1/tpg/pixel-objects", query);
 }
 
 export async function getPixelObjectMobile(id: string): Promise<PixelObjectMobileDto> {
@@ -109,16 +88,28 @@ export async function getPixelObjectMobile(id: string): Promise<PixelObjectMobil
   return response.json() as Promise<PixelObjectMobileDto>;
 }
 
+/** @deprecated Prefer listMyPixelObjectsPage for cursor pagination. */
 export async function listMyPixelObjects(): Promise<PixelObjectDto[]> {
-  const response = await apiFetch("/v1/tpg/pixel-objects/mine");
-  const data = (await response.json()) as { items: PixelObjectDto[] };
-  return data.items;
+  const page = await listMyPixelObjectsPage();
+  return page.items;
 }
 
+export async function listMyPixelObjectsPage(
+  query?: ListPixelObjectsQuery,
+): Promise<PixelObjectListPage> {
+  return readListPage("/v1/tpg/pixel-objects/mine", query);
+}
+
+/** @deprecated Prefer listPixelObjectModerationPage for cursor pagination. */
 export async function listPixelObjectModeration(): Promise<PixelObjectDto[]> {
-  const response = await apiFetch("/v1/tpg/pixel-objects/moderation");
-  const data = (await response.json()) as { items: PixelObjectDto[] };
-  return data.items;
+  const page = await listPixelObjectModerationPage();
+  return page.items;
+}
+
+export async function listPixelObjectModerationPage(
+  query?: ListPixelObjectsQuery,
+): Promise<PixelObjectListPage> {
+  return readListPage("/v1/tpg/pixel-objects/moderation", query);
 }
 
 export async function publishPixelObject(id: string): Promise<PixelObjectDto> {
@@ -135,11 +126,7 @@ export async function rejectPixelObject(id: string, comment: string): Promise<Pi
 }
 
 export function moderationErrorMessage(error: unknown): string {
-  if (error instanceof ApiError && error.status === 403) {
-    return "Недостаточно прав, чтобы отправить объект на модерацию.";
-  }
-  if (error instanceof Error && error.message.trim().length > 0) {
-    return error.message;
-  }
-  return "Не удалось отправить объект.";
+  return mapApiErrorMessage(error, "Не удалось отправить объект.");
 }
+
+export { DEFAULT_PIXEL_OBJECT_LIMITS };

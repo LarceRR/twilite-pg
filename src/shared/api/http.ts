@@ -3,12 +3,22 @@ import { env } from "@/shared/config/env";
 export class ApiError extends Error {
   readonly status: number;
   readonly body: unknown;
+  readonly code: string | null;
+  readonly requestId: string | null;
 
-  constructor(message: string, status: number, body: unknown) {
+  constructor(
+    message: string,
+    status: number,
+    body: unknown,
+    code: string | null = null,
+    requestId: string | null = null,
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.body = body;
+    this.code = code;
+    this.requestId = requestId;
   }
 }
 
@@ -61,5 +71,19 @@ async function toApiError(response: Response): Promise<ApiError> {
     typeof body === "object" && body !== null && "message" in body
       ? String((body as { message: unknown }).message)
       : `HTTP ${response.status}`;
-  return new ApiError(message, response.status, body);
+  const code =
+    typeof body === "object" && body !== null && "code" in body
+      ? String((body as { code: unknown }).code)
+      : null;
+  const requestId =
+    typeof body === "object" && body !== null && "requestId" in body
+      ? String((body as { requestId: unknown }).requestId)
+      : null;
+  return new ApiError(
+    message,
+    response.status,
+    body,
+    code && code.length > 0 ? code : null,
+    requestId && requestId.length > 0 ? requestId : null,
+  );
 }

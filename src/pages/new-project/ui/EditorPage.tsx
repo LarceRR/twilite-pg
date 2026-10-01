@@ -2,6 +2,7 @@ import "./EditorPage.scss";
 import { useSidebarStore } from "@/shared/store/sidebar";
 import { useEditorCanvasStore } from "@/shared/store/editorCanvas";
 import { getEditorToolByName, useEditorSelectedToolStore } from "@/shared/store/editorSelectedTool";
+import { usePixelObjectLimitsStore } from "@/shared/store/pixelObjectLimits";
 import { APP_HOTKEYS } from "@/shared/const/hotkeys";
 import { useHotkey } from "@/shared/hooks/useHotkey";
 import React, { useEffect } from "react";
@@ -15,14 +16,16 @@ import { EditorRightToolsSidebar } from "./components/EditorRightToolsSidebar/Ed
 
 const EditorPage: React.FC = () => {
   const setSidebarOpen = useSidebarStore((state) => state.setSidebarOpen);
+  const fetchLimits = usePixelObjectLimitsStore((state) => state.fetchLimits);
   const imageImport = useEditorImageImport();
   const storyboardImport = useStoryboardImport();
 
   useEffect(() => {
     setSidebarOpen(false);
+    void fetchLimits();
 
     return () => setSidebarOpen(true);
-  }, [setSidebarOpen]);
+  }, [fetchLimits, setSidebarOpen]);
 
   useHotkey(APP_HOTKEYS.UNDO, () => {
     useEditorCanvasStore.getState().undo();
