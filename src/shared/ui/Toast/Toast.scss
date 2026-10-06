@@ -1,0 +1,297 @@
+.toast-viewport {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  /* Above modals, pickers, popovers, search overlays. */
+  z-index: 2147483000;
+  width: min(380px, calc(100vw - 24px));
+  pointer-events: none;
+}
+
+.toast-viewport__list {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
+  transition: height 420ms var(--ease-out);
+}
+
+.toast-viewport__list::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Keeps hover continuous across gaps between stacked cards. */
+  z-index: 0;
+}
+
+.toast {
+  --toast-offset: 0px;
+  --toast-scale: 1;
+  --toast-z: 1;
+  --toast-clip-height: auto;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: var(--toast-z);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 52px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in oklch, var(--bg) 92%, transparent);
+  color: var(--text);
+  backdrop-filter: blur(16px);
+  opacity: 1;
+  transform: translate3d(0, var(--toast-offset), 0) scale(var(--toast-scale));
+  transform-origin: top right;
+  transition:
+    transform 420ms var(--ease-out),
+    opacity 280ms var(--ease-out),
+    height 420ms var(--ease-out),
+    box-shadow 280ms var(--ease-out);
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+.toast[data-has-description="true"] {
+  align-items: start;
+}
+
+/* Enter from the right / slightly above — interruptible CSS transitions. */
+.toast[data-mounted="false"] {
+  opacity: 0;
+  transform: translate3d(22px, calc(var(--toast-offset) - 12px), 0) scale(0.94);
+}
+
+.toast[data-leaving="true"] {
+  opacity: 0;
+  transform: translate3d(28px, var(--toast-offset), 0) scale(0.92);
+  pointer-events: none;
+  box-shadow: none;
+}
+
+.toast[data-expanded="false"][data-front="false"][data-leaving="false"] {
+  height: var(--toast-clip-height);
+  pointer-events: none;
+}
+
+.toast[data-expanded="true"],
+.toast[data-front="true"] {
+  height: auto;
+}
+
+.toast[data-expanded="true"][data-leaving="false"],
+.toast[data-front="true"][data-leaving="false"] {
+  pointer-events: auto;
+}
+
+.toast__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text-muted);
+}
+
+.toast[data-has-description="true"] .toast__icon,
+.toast[data-has-description="true"] .toast__close {
+  margin-top: 2px;
+}
+
+.toast[data-type="info"] .toast__icon {
+  color: var(--cobalt);
+}
+
+.toast[data-type="warn"] .toast__icon {
+  color: var(--amber);
+}
+
+.toast[data-type="success"] .toast__icon {
+  color: var(--success);
+}
+
+.toast[data-type="error"] .toast__icon {
+  color: var(--persimmon);
+}
+
+.toast[data-type="info"] {
+  border-color: color-mix(in oklch, var(--cobalt) 65%, transparent);
+}
+
+.toast[data-type="warn"] {
+  border-color: color-mix(in oklch, var(--amber) 65%, transparent);
+}
+
+.toast[data-type="success"] {
+  border-color: color-mix(in oklch, var(--success) 65%, transparent);
+}
+
+.toast[data-type="error"] {
+  border-color: color-mix(in oklch, var(--persimmon) 65%, transparent);
+}
+
+.toast__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.toast__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.toast__title {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 560;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+.toast__count {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.55em;
+  height: 1.35em;
+  padding: 0 0.4em;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--text) 10%, transparent);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.toast[data-type="error"] .toast__count {
+  background: color-mix(in oklch, var(--persimmon) 18%, transparent);
+  color: var(--persimmon);
+}
+
+.toast[data-type="success"] .toast__count {
+  background: color-mix(in oklch, var(--success) 18%, transparent);
+  color: color-mix(in oklch, var(--success) 80%, var(--text));
+}
+
+.toast[data-type="warn"] .toast__count {
+  background: color-mix(in oklch, var(--amber) 18%, transparent);
+  color: color-mix(in oklch, var(--amber) 75%, var(--text));
+}
+
+.toast[data-type="info"] .toast__count {
+  background: color-mix(in oklch, var(--cobalt) 16%, transparent);
+  color: var(--cobalt);
+}
+
+.toast__description {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.toast__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.toast__close:hover {
+  background: color-mix(in oklch, var(--text) 8%, transparent);
+  color: var(--text);
+  transform: scale(1.05);
+}
+
+.toast__close:active {
+  transform: scale(0.96);
+}
+
+.toast__close:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.toast__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  transform: scaleX(1);
+  transform-origin: left center;
+  background: var(--text-muted);
+  pointer-events: none;
+  animation-name: toast-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.toast[data-type="info"] .toast__progress {
+  background: var(--cobalt);
+}
+
+.toast[data-type="warn"] .toast__progress {
+  background: var(--amber);
+}
+
+.toast[data-type="success"] .toast__progress {
+  background: var(--success);
+}
+
+.toast[data-type="error"] .toast__progress {
+  background: var(--persimmon);
+}
+
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast-viewport__list,
+  .toast__close {
+    transition: none;
+  }
+
+  .toast__progress {
+    animation: none;
+    transform: scaleX(0.15);
+    opacity: 0.7;
+  }
+}

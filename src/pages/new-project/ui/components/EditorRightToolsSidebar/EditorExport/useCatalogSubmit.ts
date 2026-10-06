@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 
 import { mapApiErrorMessage } from "@/shared/api/mapApiError";
 import { captureExportFrames } from "@/shared/pixelObject/capture";
@@ -15,21 +16,18 @@ import {
 } from "@/shared/pixelObject/submitPipeline";
 import { usePixelObjectEditStore } from "@/shared/store/pixelObjectEdit";
 import { usePixelObjectLimitsStore } from "@/shared/store/pixelObjectLimits";
-
-export type CatalogSubmitStatus = {
-  busy: boolean;
-  error: string | null;
-  success: string | null;
-};
+import { toast } from "@/shared/ui/Toast";
 
 export function useCatalogSubmit(title: string) {
+  const [searchParams] = useSearchParams();
+  const projectIdFromQuery = searchParams.get("projectId");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const pipelineRef = useRef<SubmitPipelineState | null>(null);
   const editingObjectId = usePixelObjectEditStore((state) => state.editingObjectId);
+  const editingProjectId = usePixelObjectEditStore((state) => state.projectId);
   const clearEditingObject = usePixelObjectEditStore((state) => state.clearEditingObject);
   const sheetMaxBytes = usePixelObjectLimitsStore((state) => state.limits.sheetMaxBytes);
+  const projectId = editingProjectId ?? projectIdFromQuery;
 
   const preparePackage = useCallback(async () => {
     const document = captureExportFrames();
@@ -52,9 +50,13 @@ export function useCatalogSubmit(title: string) {
     if (busy) {
       return;
     }
+    if (!projectId) {
+      toast.warn("Нужен проект", {
+        description: "Откройте редактор из карточки проекта, чтобы отправить объект.",
+      });
+      return;
+    }
     setBusy(true);
-    setError(null);
-    setSuccess(null);
     try {
       const packed = await preparePackage();
       if (sheetTooLarge(packed.png.size, sheetMaxBytes)) {
@@ -65,26 +67,31 @@ export function useCatalogSubmit(title: string) {
       const result = await runSubmitPipeline({
         sheet: packed.png,
         title: title.trim(),
+        projectId,
         buildManifest: (mediaId) => toSubmitManifest(packed.local, mediaId),
         state: prior,
         deps: defaultSubmitPipelineDeps({ resubmitId: editingObjectId }),
       });
       pipelineRef.current = result.state;
       clearEditingObject();
-      setSuccess(
-        editingObjectId
-          ? "Новая ревизия отправлена. Опубликованная версия остаётся доступной до решения модерации."
-          : "Объект отправлен на модерацию. Можно закрыть вкладку — повторная отправка безопасна по Idempotency-Key.",
-      );
+      toast.success("Объект успешно отправлен на модерацию");
     } catch (caught) {
       if (caught instanceof SubmitPipelineError) {
         pipelineRef.current = caught.pipelineState;
       }
-      setError(mapApiErrorMessage(caught, "Не удалось отправить объект."));
+      toast.error(mapApiErrorMessage(caught, "Не удалось отправить объект."));
     } finally {
       setBusy(false);
     }
-  }, [busy, clearEditingObject, editingObjectId, preparePackage, sheetMaxBytes, title]);
+  }, [
+    busy,
+    clearEditingObject,
+    editingObjectId,
+    preparePackage,
+    projectId,
+    sheetMaxBytes,
+    title,
+  ]);
 
-  return { busy, error, success, send, setError, setSuccess, preparePackage };
+  return { busy, send, preparePackage, projectId };
 }

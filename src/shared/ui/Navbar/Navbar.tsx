@@ -13,6 +13,7 @@ import SearchOverlay from "./components/SearchOverlay/SearchOverlay";
 import { APP_HOTKEYS } from "@/shared/const/hotkeys";
 import { useSessionStore } from "@/shared/store/session";
 import { userInitials } from "@/shared/lib/auth/userInitials";
+import { alert } from "@/shared/ui/Confirm";
 
 export default function Navbar() {
   const search = useNavbarSearch();
@@ -69,8 +70,13 @@ export default function Navbar() {
 
       <div className="navbar__actions">
         <LiquidGlassButton
-          icon={<Bell size={16} />}
-          action={() => alert("Уведомления")}
+          icon={<Bell size={20} />}
+          action={() => {
+            void alert({
+              title: "Уведомления",
+              description: "Скоро здесь появятся уведомления.",
+            });
+          }}
           children={<CounterBadge count={99} />}
         />
         <NavLink to="/cabinet" className="navbar__avatar" aria-label="Открыть профиль">

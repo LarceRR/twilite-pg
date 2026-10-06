@@ -7,12 +7,11 @@ import {
 } from "@/shared/api/pixelObjects";
 import { mapApiErrorMessage } from "@/shared/api/mapApiError";
 import { useCursorList } from "@/shared/hooks/useCursorList";
-import { useSessionStore } from "@/shared/store/session";
+import { toast } from "@/shared/ui/Toast";
 import { SheetPlayer } from "@/pages/new-project/ui/components/EditorRightToolsSidebar/EditorExport/SheetPlayer";
 import "./PixelObjectModerationPage.scss";
 
 export function PixelObjectModerationPage(): ReactElement {
-  const currentUserId = useSessionStore((state) => state.user?.id ?? null);
   const loadPage = useCallback(
     (query?: { cursor?: string | null; limit?: number }) => listPixelObjectModerationPage(query),
     [],
@@ -20,11 +19,9 @@ export function PixelObjectModerationPage(): ReactElement {
   const list = useCursorList({ loadPage });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [comments, setComments] = useState<Record<string, string>>({});
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const review = async (itemId: string, action: () => Promise<unknown>) => {
     setBusyId(itemId);
-    setActionError(null);
     try {
       await action();
       setComments((prev) => {
@@ -33,14 +30,15 @@ export function PixelObjectModerationPage(): ReactElement {
         return next;
       });
       await list.reload();
+      toast.success("Решение сохранено", {
+        description: "Объект убран из очереди модерации.",
+      });
     } catch (caught) {
-      setActionError(mapApiErrorMessage(caught, "Не удалось выполнить действие модерации."));
+      toast.error(mapApiErrorMessage(caught, "Не удалось выполнить действие модерации."));
     } finally {
       setBusyId(null);
     }
   };
-
-  const error = list.error ?? actionError;
 
   return (
     <div className="pixel-object-moderation">
@@ -49,12 +47,15 @@ export function PixelObjectModerationPage(): ReactElement {
           <h1>Модерация объектов</h1>
           <p className="pixel-object-moderation__lead">В очереди: {list.items.length}</p>
         </div>
-        <button type="button" className="pixel-object-moderation__refresh" onClick={() => void list.reload()}>
+        <button
+          type="button"
+          className="pixel-object-moderation__refresh"
+          onClick={() => void list.reload()}
+        >
           Обновить
         </button>
       </header>
 
-      {error ? <div className="pixel-object-moderation__error">{error}</div> : null}
       {list.loading ? <p>Загрузка…</p> : null}
       {!list.loading && list.items.length === 0 ? (
         <p className="pixel-object-moderation__empty">Очередь пуста.</p>
@@ -67,7 +68,6 @@ export function PixelObjectModerationPage(): ReactElement {
             item={item}
             comment={comments[item.id] ?? ""}
             busy={busyId === item.id}
-            selfOwned={Boolean(currentUserId && item.authorUserId === currentUserId)}
             onComment={(value) => setComments((prev) => ({ ...prev, [item.id]: value }))}
             onPublish={() => void review(item.id, () => publishPixelObject(item.id))}
             onReject={() =>
@@ -95,14 +95,12 @@ function ModerationCard(props: {
   item: PixelObjectDto;
   comment: string;
   busy: boolean;
-  selfOwned: boolean;
   onComment: (value: string) => void;
   onPublish: () => void;
   onReject: () => void;
 }): ReactElement {
-  const { item, comment, busy, selfOwned, onComment, onPublish, onReject } = props;
-  const canReject = !selfOwned && comment.trim().length >= 3;
-  const actionsDisabled = busy || selfOwned;
+  const { item, comment, busy, onComment, onPublish, onReject } = props;
+  const canReject = comment.trim().length >= 3;
 
   return (
     <li>
@@ -115,36 +113,28 @@ function ModerationCard(props: {
               {item.authorDisplayName} · рев. {item.revision} ·{" "}
               {new Date(item.createdAt).toLocaleString("ru-RU")}
             </p>
-            {selfOwned ? (
-              <p className="pixel-object-moderation__error" role="status">
-                Нельзя модерировать собственный объект.
-              </p>
-            ) : null}
             <div className="pixel-object-moderation__actions">
               <button
                 type="button"
                 className="pixel-object-moderation__btn pixel-object-moderation__btn--primary"
-                disabled={actionsDisabled}
+                disabled={busy}
                 onClick={onPublish}
               >
                 Опубликовать
               </button>
-            </div>
-            <div className="pixel-object-moderation__reject">
-              <label className="pixel-object-moderation__field">
-                <span className="pixel-object-moderation__label">Комментарий при отклонении</span>
+              <label className="pixel-object-moderation__reject">
+                <span>Комментарий к отклонению</span>
                 <textarea
                   value={comment}
+                  disabled={busy}
                   onChange={(event) => onComment(event.target.value)}
-                  rows={2}
-                  placeholder="Минимум 3 символа"
-                  disabled={selfOwned}
+                  rows={3}
                 />
               </label>
               <button
                 type="button"
-                className="pixel-object-moderation__btn pixel-object-moderation__btn--danger"
-                disabled={actionsDisabled || !canReject}
+                className="pixel-object-moderation__btn"
+                disabled={!canReject || busy}
                 onClick={onReject}
               >
                 Отклонить
@@ -156,5 +146,3 @@ function ModerationCard(props: {
     </li>
   );
 }
-
-export default PixelObjectModerationPage;

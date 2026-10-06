@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import {
+  archivePixelObject,
   listMyPixelObjectsPage,
   listPublishedPixelObjectsPage,
   type PixelObjectDto,
@@ -8,6 +9,8 @@ import {
 import { useCursorList } from "@/shared/hooks/useCursorList";
 import { mapApiErrorMessage } from "@/shared/api/mapApiError";
 import { loadPixelObjectIntoEditor } from "@/shared/pixelObject/loadPixelObjectIntoEditor";
+import { confirm } from "@/shared/ui/Confirm";
+import { toast } from "@/shared/ui/Toast";
 import { SheetPlayer } from "@/pages/new-project/ui/components/EditorRightToolsSidebar/EditorExport/SheetPlayer";
 import { MobileLoopPlayer } from "./MobileLoopPlayer";
 import "./ObjectCatalogPage.scss";
@@ -16,6 +19,7 @@ const STATUS_LABEL: Record<PixelObjectDto["status"], string> = {
   pending: "На модерации",
   published: "Опубликован",
   rejected: "Отклонён",
+  archived: "В архиве",
 };
 
 type ObjectCatalogPageProps = {
@@ -26,27 +30,61 @@ function canOpenInEditor(item: PixelObjectDto): boolean {
   return item.status === "rejected" || item.status === "published";
 }
 
+function canDeleteObject(item: PixelObjectDto): boolean {
+  return item.status === "published";
+}
+
 export const ObjectCatalogPage = ({ mode }: ObjectCatalogPageProps) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const projectIdFilter = searchParams.get("projectId");
   const loadPage = useCallback(
     (query?: { cursor?: string | null; limit?: number }) =>
-      mode === "catalog" ? listPublishedPixelObjectsPage(query) : listMyPixelObjectsPage(query),
-    [mode],
+      mode === "catalog"
+        ? listPublishedPixelObjectsPage(query)
+        : listMyPixelObjectsPage({
+            ...query,
+            projectId: projectIdFilter ?? undefined,
+          }),
+    [mode, projectIdFilter],
   );
   const list = useCursorList({ loadPage });
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const openInEditor = async (item: PixelObjectDto) => {
-    setLoadError(null);
     setLoadingId(item.id);
     try {
       await loadPixelObjectIntoEditor(item);
-      navigate("/new-project");
+      navigate(`/new-project?projectId=${item.projectId}`);
     } catch (caught) {
-      setLoadError(mapApiErrorMessage(caught, "Не удалось открыть объект в редакторе."));
+      toast.error(mapApiErrorMessage(caught, "Не удалось открыть объект в редакторе."));
     } finally {
       setLoadingId(null);
+    }
+  };
+
+  const removeObject = async (item: PixelObjectDto) => {
+    const ok = await confirm({
+      title: `Удалить «${item.title}»?`,
+      description: "Объект скроется из каталога. Размещения на поверхностях останутся.",
+      confirmLabel: "Удалить",
+      danger: true,
+    });
+    if (!ok) {
+      return;
+    }
+    setDeletingId(item.id);
+    try {
+      await archivePixelObject(item.id);
+      list.removeItem(item.id);
+      toast.success("Объект удалён", {
+        description: "Он больше не показывается в каталоге.",
+      });
+    } catch (caught) {
+      toast.error(mapApiErrorMessage(caught, "Не удалось удалить объект."));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -55,14 +93,12 @@ export const ObjectCatalogPage = ({ mode }: ObjectCatalogPageProps) => {
     mode === "catalog"
       ? "В каталоге пока нет опубликованных объектов."
       : "Вы ещё не отправляли объекты.";
-  const error = list.error ?? loadError;
 
   return (
     <section className="object-catalog">
       <h1>{title}</h1>
       {list.loading ? <p>Загрузка…</p> : null}
-      {error ? <p className="object-catalog__error">{error}</p> : null}
-      {!list.loading && !list.error && list.items.length === 0 ? <p>{empty}</p> : null}
+      {!list.loading && list.items.length === 0 ? <p>{empty}</p> : null}
       <div className="object-catalog__grid">
         {list.items.map((item) => (
           <article key={item.id} className="object-catalog__card">
@@ -80,15 +116,29 @@ export const ObjectCatalogPage = ({ mode }: ObjectCatalogPageProps) => {
             {item.rejectionComment ? (
               <p className="object-catalog__comment">{item.rejectionComment}</p>
             ) : null}
-            {mode === "mine" && canOpenInEditor(item) ? (
-              <button
-                type="button"
-                className="object-catalog__edit"
-                disabled={loadingId === item.id}
-                onClick={() => void openInEditor(item)}
-              >
-                {loadingId === item.id ? "Загрузка…" : "Открыть в редакторе"}
-              </button>
+            {mode === "mine" && (canOpenInEditor(item) || canDeleteObject(item)) ? (
+              <div className="object-catalog__actions">
+                {canOpenInEditor(item) ? (
+                  <button
+                    type="button"
+                    className="object-catalog__edit"
+                    disabled={loadingId === item.id || deletingId === item.id}
+                    onClick={() => void openInEditor(item)}
+                  >
+                    {loadingId === item.id ? "Загрузка…" : "Открыть в редакторе"}
+                  </button>
+                ) : null}
+                {canDeleteObject(item) ? (
+                  <button
+                    type="button"
+                    className="object-catalog__delete"
+                    disabled={deletingId === item.id || loadingId === item.id}
+                    onClick={() => void removeObject(item)}
+                  >
+                    {deletingId === item.id ? "Удаление…" : "Удалить"}
+                  </button>
+                ) : null}
+              </div>
             ) : null}
           </article>
         ))}

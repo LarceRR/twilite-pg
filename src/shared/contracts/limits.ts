@@ -11,6 +11,9 @@ export type PixelObjectLimits = {
   maxFrameDurationMs: number;
   titleMax: number;
   surfaceMax: number;
+  objectsPerProject: number;
+  projectsPerUser: number;
+  projectTitleMax: number;
   supportedFormat: "twilite.pixelobject/v1";
 };
 
@@ -22,6 +25,9 @@ export const DEFAULT_PIXEL_OBJECT_LIMITS = {
   maxFrameDurationMs: 10_000,
   titleMax: 80,
   surfaceMax: 500,
+  objectsPerProject: 100,
+  projectsPerUser: 50,
+  projectTitleMax: 80,
   supportedFormat: "twilite.pixelobject/v1",
 } as const satisfies PixelObjectLimits;
 

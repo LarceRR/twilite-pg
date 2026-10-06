@@ -5,6 +5,7 @@ import {
   DEFAULT_PIXEL_OBJECT_LIMITS,
   type PixelObjectLimits,
 } from "@/shared/contracts";
+import { toast } from "@/shared/ui/Toast";
 
 type LimitsState = {
   limits: PixelObjectLimits;
@@ -32,6 +33,18 @@ function parseLimits(raw: unknown): PixelObjectLimits {
     ),
     titleMax: positiveInt(body.titleMax, DEFAULT_PIXEL_OBJECT_LIMITS.titleMax),
     surfaceMax: positiveInt(body.surfaceMax, DEFAULT_PIXEL_OBJECT_LIMITS.surfaceMax),
+    objectsPerProject: positiveInt(
+      body.objectsPerProject,
+      DEFAULT_PIXEL_OBJECT_LIMITS.objectsPerProject,
+    ),
+    projectsPerUser: positiveInt(
+      body.projectsPerUser,
+      DEFAULT_PIXEL_OBJECT_LIMITS.projectsPerUser,
+    ),
+    projectTitleMax: positiveInt(
+      body.projectTitleMax,
+      DEFAULT_PIXEL_OBJECT_LIMITS.projectTitleMax,
+    ),
     supportedFormat: DEFAULT_PIXEL_OBJECT_LIMITS.supportedFormat,
   };
 }
@@ -61,6 +74,7 @@ export const usePixelObjectLimitsStore = create<LimitsState>((set, get) => ({
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "Не удалось загрузить лимиты";
       set({ status: "error", error: message });
+      toast.error(message);
       return get().limits;
     }
   },

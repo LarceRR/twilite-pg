@@ -135,7 +135,7 @@ export const EditorToolSettiings = () => {
           title="Swap colors"
           aria-label="Swap colors"
         >
-          <ArrowLeftRight size={16} />
+          <ArrowLeftRight size={20} />
         </button>
         <ColorPicker
           className="editor-tool-settings__swatch"
@@ -215,7 +215,7 @@ export const EditorToolSettiings = () => {
           title="Undo"
           aria-label="Undo"
         >
-          <Undo2 size={16} />
+          <Undo2 size={20} />
         </button>
         <button
           type="button"
@@ -225,7 +225,7 @@ export const EditorToolSettiings = () => {
           title="Redo"
           aria-label="Redo"
         >
-          <Redo2 size={16} />
+          <Redo2 size={20} />
         </button>
       </div>
     </div>

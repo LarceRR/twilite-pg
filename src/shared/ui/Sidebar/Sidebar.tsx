@@ -15,6 +15,10 @@ export default function Sidebar({isCollapsed}: SidebarProps) {
     const setSidebarOpen = useSidebarStore((state) => state.setSidebarOpen)
     const { hasPermission } = usePermissions()
     const canCreateProject = hasPermission(TPG_PERMISSIONS.EDITOR_CREATE_PROJECT)
+    const canOpenEditor =
+      hasPermission(TPG_PERMISSIONS.PIXEL_OBJECTS_CREATE) ||
+      hasPermission(TPG_PERMISSIONS.PIXEL_OBJECTS_SUBMIT) ||
+      hasPermission(TPG_PERMISSIONS.EDITOR_VIEW)
     const canModerateThemes = hasPermission(TPG_PERMISSIONS.THEMES_MODERATE)
     const canModerateObjects = hasPermission(TPG_PERMISSIONS.PIXEL_OBJECTS_MODERATE)
 
@@ -36,8 +40,14 @@ export default function Sidebar({isCollapsed}: SidebarProps) {
                             {Object.values(routeObj.routes).map((item, i) => {
                                 const isNewProject =
                                     item.path === AppRoutes[0].routes.NEWPROJECT.path
+                                const isMyProjects =
+                                    item.path === AppRoutes[0].routes.MYPROJECTS.path
 
-                                if (isNewProject && !canCreateProject) {
+                                if (isMyProjects && !canCreateProject && !hasPermission(TPG_PERMISSIONS.EDITOR_VIEW)) {
+                                    return null
+                                }
+
+                                if (isNewProject && !canOpenEditor) {
                                     return null
                                 }
 

@@ -16,9 +16,6 @@ export function ThemeStudioPage(): ReactElement {
         </p>
       </header>
 
-      {studio.error ? <div className="theme-studio__error">{studio.error}</div> : null}
-      {studio.info ? <div className="theme-studio__info">{studio.info}</div> : null}
-
       <section className="theme-studio__panel">
         <h2>Генерация</h2>
         <label>

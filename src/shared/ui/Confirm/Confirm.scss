@@ -1,0 +1,88 @@
+.confirm-dialog {
+  width: min(420px, 100%);
+
+  .modal__header {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .modal__description {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .modal__body {
+    padding-top: 16px;
+  }
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.confirm-dialog__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    filter 160ms var(--ease-out),
+    background 160ms var(--ease-out),
+    border-color 160ms var(--ease-out);
+
+  &:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  &--secondary {
+    border: 1px solid var(--line-soft);
+    background: transparent;
+    color: var(--text);
+    font-weight: 500;
+
+    &:hover {
+      background: color-mix(in oklch, var(--surface) 88%, white);
+      border-color: color-mix(in oklch, var(--line) 70%, white);
+    }
+  }
+
+  &--primary {
+    border: 0;
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: 0 1px 2px var(--accent-shadow);
+
+    &:hover {
+      filter: brightness(1.05);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  &--danger {
+    border: 0;
+    background: var(--persimmon);
+    color: oklch(98% 0.005 40);
+
+    &:hover {
+      filter: brightness(1.06);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+}

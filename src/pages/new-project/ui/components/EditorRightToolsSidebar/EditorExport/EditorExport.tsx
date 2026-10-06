@@ -22,6 +22,7 @@ import {
 import { buildTpoZip, zipBlob } from "@/shared/pixelObject/zip";
 import { ColorPicker, ColorPickerSwatchTrigger } from "@/shared/ui/ColorPicker";
 import Input from "@/shared/ui/Input/Input";
+import { toast } from "@/shared/ui/Toast";
 import { CanvasOversizeActions } from "./CanvasOversizeActions";
 import { useCatalogSubmit } from "./useCatalogSubmit";
 import "./EditorExport.scss";
@@ -82,7 +83,6 @@ export const EditorExport = () => {
   const [transparent, setTransparent] = useState(true);
   const [flatColor, setFlatColor] = useState("#ffffff");
   const [downloading, setDownloading] = useState<DownloadKind | null>(null);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [fitBusy, setFitBusy] = useState(false);
   const previewRef = useRef<HTMLCanvasElement>(null);
   const catalog = useCatalogSubmit(title);
@@ -100,6 +100,7 @@ export const EditorExport = () => {
     frameCount,
     opaque,
     canSubmit,
+    projectId: catalog.projectId,
     width,
     height,
     canvasMax: limits.canvasMax,
@@ -170,7 +171,6 @@ export const EditorExport = () => {
     if (downloading) {
       return;
     }
-    setDownloadError(null);
     setDownloading(kind);
     try {
       if (kind === "frame") {
@@ -184,7 +184,7 @@ export const EditorExport = () => {
         downloadBlob(zipBlob(bytes), `${packed.slug || "export"}.tpo.zip`);
       }
     } catch (caught) {
-      setDownloadError(mapApiErrorMessage(caught));
+      toast.error(mapApiErrorMessage(caught));
     } finally {
       setDownloading(null);
     }
@@ -192,11 +192,10 @@ export const EditorExport = () => {
 
   const applyFit = (mode: "nearest-downscale" | "center-crop") => {
     setFitBusy(true);
-    catalog.setError(null);
     try {
       const result = applyCanvasFitToDocument(limits.canvasMax, mode);
       if (!result.ok) {
-        catalog.setError(result.reason);
+        toast.error(result.reason);
       }
     } finally {
       setFitBusy(false);
@@ -206,7 +205,6 @@ export const EditorExport = () => {
   const exportSizeLabel = `${width}×${height}`;
   const frameLabel =
     frameCount === 1 ? "1 кадр" : frameCount >= 2 && frameCount <= 4 ? `${frameCount} кадра` : `${frameCount} кадров`;
-  const panelError = panel === "catalog" ? catalog.error : downloadError;
   const submitDisabled =
     blocker !== null ||
     catalog.busy ||
@@ -339,7 +337,7 @@ export const EditorExport = () => {
                         disabled={Boolean(downloading)}
                         onClick={() => void runDownload(id)}
                       >
-                        {isLoading ? <Loader2 size={16} className="editor-export__spin" /> : "Скачать"}
+                        {isLoading ? <Loader2 size={20} className="editor-export__spin" /> : "Скачать"}
                       </button>
                     </article>
                   </li>
@@ -400,7 +398,7 @@ export const EditorExport = () => {
             >
               {catalog.busy ? (
                 <>
-                  <Loader2 size={16} className="editor-export__spin" />
+                  <Loader2 size={20} className="editor-export__spin" />
                   Отправка…
                 </>
               ) : editingObjectId ? (
@@ -409,21 +407,9 @@ export const EditorExport = () => {
                 "Отправить на модерацию"
               )}
             </button>
-
-            {catalog.success ? (
-              <p className="editor-export__banner editor-export__banner--ok" role="status">
-                {catalog.success}
-              </p>
-            ) : null}
           </section>
         </div>
       )}
-
-      {panelError ? (
-        <p className="editor-export__banner editor-export__banner--error" role="alert">
-          {panelError}
-        </p>
-      ) : null}
     </div>
   );
 };

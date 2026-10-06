@@ -44,7 +44,7 @@ export const AppRoutes = [
       },
       NEWPROJECT: {
         path: "/new-project",
-        name: "Новый проект",
+        name: "Редактор",
         inPagesList: true,
         icon: Plus
       },

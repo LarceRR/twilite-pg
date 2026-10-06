@@ -4,6 +4,6 @@ import LiquidGlassButton from "@/shared/ui/LiquidGlassButton/LiquidGlassButton";
 
 export default function SearchButton() {
   return (
-    <LiquidGlassButton icon={<Search size={16}/>}/>
+    <LiquidGlassButton icon={<Search size={20}/>}/>
   );
 }

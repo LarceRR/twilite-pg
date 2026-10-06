@@ -20,6 +20,7 @@ import {
   saveLocalTheme,
   type SavedLocalTheme,
 } from "@/shared/lib/theme-studio/savedThemesStorage";
+import { toast } from "@/shared/ui/Toast";
 
 function errorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message;
@@ -36,14 +37,12 @@ export function useThemeStudio() {
   const [saved, setSaved] = useState<SavedLocalTheme[]>(() => loadSavedThemes());
   const [mine, setMine] = useState<readonly AppThemeDto[]>([]);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
 
   const refreshMine = useCallback(async () => {
     try {
       setMine(await fetchMyThemes());
     } catch (err) {
-      setError(errorMessage(err));
+      toast.error(errorMessage(err));
     }
   }, []);
 
@@ -59,7 +58,7 @@ export function useThemeStudio() {
         setModelId(modelItems[0]?.id ?? "");
         await refreshMine();
       } catch (err) {
-        setError(errorMessage(err));
+        toast.error(errorMessage(err));
       }
     })();
   }, [refreshMine]);
@@ -67,13 +66,13 @@ export function useThemeStudio() {
   const onGenerate = useCallback(async () => {
     if (!modelId || prompt.trim().length === 0) return;
     setBusy(true);
-    setError(null);
-    setInfo(null);
     try {
       setDraft(await generateTheme(modelId, prompt.trim()));
-      setInfo("Черновик сгенерирован — можно править цвета");
+      toast.success("Черновик готов", {
+        description: "Можно править цвета и сохранить или отправить на модерацию.",
+      });
     } catch (err) {
-      setError(errorMessage(err));
+      toast.error(errorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -83,21 +82,24 @@ export function useThemeStudio() {
     if (draft === null) return;
     const entry = saveLocalTheme(draft);
     setSaved(loadSavedThemes());
-    setInfo(`Сохранено локально: ${entry.name}`);
+    toast.info("Сохранено локально", {
+      description: `«${entry.name}» лежит только в этом браузере, пока вы не отправите тему.`,
+    });
   }, [draft]);
 
   const onPublish = useCallback(
     async (theme: GeneratedThemeDto, localId?: string) => {
       setBusy(true);
-      setError(null);
       try {
         await submitTheme(theme);
         if (localId) removeLocalTheme(localId);
         setSaved(loadSavedThemes());
         await refreshMine();
-        setInfo("Тема отправлена на модерацию");
+        toast.success("Тема на модерации", {
+          description: "После проверки она сможет попасть в мобильное приложение.",
+        });
       } catch (err) {
-        setError(errorMessage(err));
+        toast.error(errorMessage(err));
       } finally {
         setBusy(false);
       }
@@ -108,13 +110,14 @@ export function useThemeStudio() {
   const onResubmit = useCallback(
     async (id: string, theme: GeneratedThemeDto) => {
       setBusy(true);
-      setError(null);
       try {
         await resubmitTheme(id, theme);
         await refreshMine();
-        setInfo("Тема снова отправлена на модерацию");
+        toast.success("Тема отправлена снова", {
+          description: "Предыдущий комментарий отклонения можно учесть в правках.",
+        });
       } catch (err) {
-        setError(errorMessage(err));
+        toast.error(errorMessage(err));
       } finally {
         setBusy(false);
       }
@@ -125,13 +128,14 @@ export function useThemeStudio() {
   const onDeleteRemote = useCallback(
     async (id: string) => {
       setBusy(true);
-      setError(null);
       try {
         await deleteTheme(id);
         await refreshMine();
-        setInfo("Тема удалена");
+        toast.success("Тема удалена", {
+          description: "Она больше не будет в вашей очереди и на модерации.",
+        });
       } catch (err) {
-        setError(errorMessage(err));
+        toast.error(errorMessage(err));
       } finally {
         setBusy(false);
       }
@@ -169,8 +173,6 @@ export function useThemeStudio() {
     saved,
     mine,
     busy,
-    error,
-    info,
     tokenGroups,
     onGenerate,
     onSaveLocal,

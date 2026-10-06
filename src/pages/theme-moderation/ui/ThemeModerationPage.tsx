@@ -7,22 +7,21 @@ import {
   type AppThemeDto,
 } from "@/shared/api/appThemes";
 import { ApiError } from "@/shared/api/http";
+import { toast } from "@/shared/ui/Toast";
 
 import "./ThemeModerationPage.scss";
 
 export function ThemeModerationPage(): ReactElement {
   const [items, setItems] = useState<readonly AppThemeDto[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [comment, setComment] = useState("");
 
   const reload = useCallback(async () => {
     try {
-      setError(null);
       setItems(await fetchModerationQueue());
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Не удалось загрузить очередь");
+      toast.error(err instanceof ApiError ? err.message : "Не удалось загрузить очередь");
     }
   }, []);
 
@@ -39,8 +38,6 @@ export function ThemeModerationPage(): ReactElement {
           Обновить
         </button>
       </header>
-
-      {error ? <div className="theme-moderation__error">{error}</div> : null}
 
       {items.map((theme) => (
         <article key={theme.id} className="theme-moderation__card">
@@ -70,8 +67,11 @@ export function ThemeModerationPage(): ReactElement {
                   try {
                     await publishTheme(theme.id);
                     await reload();
+                    toast.success("Тема опубликована", {
+                      description: "Она доступна для выбора в мобильном приложении.",
+                    });
                   } catch (err) {
-                    setError(err instanceof ApiError ? err.message : "Ошибка публикации");
+                    toast.error(err instanceof ApiError ? err.message : "Ошибка публикации");
                   } finally {
                     setBusyId(null);
                   }
@@ -103,8 +103,11 @@ export function ThemeModerationPage(): ReactElement {
                       setRejectId(null);
                       setComment("");
                       await reload();
+                      toast.success("Тема отклонена", {
+                        description: "Автор увидит ваш комментарий и сможет отправить правки.",
+                      });
                     } catch (err) {
-                      setError(err instanceof ApiError ? err.message : "Ошибка отклонения");
+                      toast.error(err instanceof ApiError ? err.message : "Ошибка отклонения");
                     } finally {
                       setBusyId(null);
                     }

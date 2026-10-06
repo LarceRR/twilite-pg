@@ -88,6 +88,7 @@ export async function loadPixelObjectIntoEditor(item: PixelObjectDto): Promise<v
 
   usePixelObjectEditStore.getState().setEditingObject({
     id: item.id,
+    projectId: item.projectId,
     title: item.title,
     status: item.status,
   });

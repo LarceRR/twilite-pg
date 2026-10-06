@@ -5,6 +5,7 @@ import {
   type PixelateResult,
 } from "@/shared/api/tpg";
 import { resolvePixelGrid } from "@/shared/store/editorCanvas";
+import { toast } from "@/shared/ui/Toast";
 import { describePixelateError, isAbortError } from "./commitNativeImport";
 import { decodeImageUrl } from "./decodeImageUrl";
 import { decodeNativePng } from "./decodeNativePng";
@@ -53,6 +54,14 @@ function revokeObjectUrl(url: string): void {
   }
 }
 
+function reportImportError(message: string, asPreview = false): void {
+  if (asPreview) {
+    toast.warn("Предпросмотр", { description: message });
+    return;
+  }
+  toast.error(message);
+}
+
 export function usePixelateImportPipeline({
   request,
   canPixelate,
@@ -62,8 +71,6 @@ export function usePixelateImportPipeline({
   const abortRef = useRef<AbortController | null>(null);
   const [step, setStep] = useState<PixelateImportStep | PixelateImportDoneStep>("loading");
   const [preview, setPreview] = useState<ImagePreview | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [previewError, setPreviewError] = useState<string | null>(null);
   const [pixelSize, setPixelSize] = useState<number>(DEFAULT_IMPORT_SETTINGS.pixelSize);
   const [paletteSize, setPaletteSize] = useState<number>(DEFAULT_IMPORT_SETTINGS.paletteSize);
   const [algorithm, setAlgorithm] = useState<PixelArtAlgorithm>(DEFAULT_IMPORT_SETTINGS.algorithm);
@@ -81,7 +88,6 @@ export function usePixelateImportPipeline({
     abortRef.current = null;
     setPixelateResult(null);
     setNativePixels(null);
-    setPreviewError(null);
     setIsPreviewing(false);
     setPreviewStale(false);
     setGridScale(1);
@@ -89,14 +95,13 @@ export function usePixelateImportPipeline({
 
     if (request.kind === "rejected") {
       setPreview(null);
-      setError(request.reason);
+      reportImportError(request.reason);
       setStep("error");
       return;
     }
 
     let cancelled = false;
     setStep("loading");
-    setError(null);
     setPreview(null);
     void loadImagePreview(request.file).then(
       (next) => {
@@ -111,7 +116,9 @@ export function usePixelateImportPipeline({
         if (cancelled) {
           return;
         }
-        setError(reason instanceof Error ? reason.message : "Файл не является изображением");
+        reportImportError(
+          reason instanceof Error ? reason.message : "Файл не является изображением",
+        );
         setStep("error");
       },
     );
@@ -140,7 +147,7 @@ export function usePixelateImportPipeline({
       return false;
     }
     if (!canPixelate) {
-      setError("Недостаточно прав для пикселизации");
+      reportImportError("Недостаточно прав для пикселизации");
       setStep("error");
       return false;
     }
@@ -150,10 +157,8 @@ export function usePixelateImportPipeline({
     abortRef.current = controller;
     setIsPreviewing(true);
     setPreviewStale(false);
-    setPreviewError(null);
     if (options.advanceStep) {
       setStep("processing");
-      setError(null);
     }
 
     try {
@@ -184,10 +189,10 @@ export function usePixelateImportPipeline({
       }
       const message = describePixelateError(reason);
       if (options.advanceStep) {
-        setError(message);
+        reportImportError(message);
         setStep("error");
       } else {
-        setPreviewError(message);
+        reportImportError(message, true);
       }
       return false;
     } finally {
@@ -208,10 +213,8 @@ export function usePixelateImportPipeline({
     abortRef.current = controller;
     setIsPreviewing(true);
     setPreviewStale(false);
-    setPreviewError(null);
     if (options.advanceStep) {
       setStep("processing");
-      setError(null);
     }
 
     try {
@@ -247,10 +250,10 @@ export function usePixelateImportPipeline({
       }
       const message = reason instanceof Error ? reason.message : "Не удалось прочитать изображение";
       if (options.advanceStep) {
-        setError(message);
+        reportImportError(message);
         setStep("error");
       } else {
-        setPreviewError(message);
+        reportImportError(message, true);
       }
       return false;
     } finally {
@@ -320,15 +323,12 @@ export function usePixelateImportPipeline({
   const resetPixelateOutput = () => {
     setPixelateResult(null);
     setNativePixels(null);
-    setPreviewError(null);
   };
 
   return {
     step,
     setStep,
     preview,
-    error,
-    previewError,
     file,
     pixelSize,
     setPixelSize,

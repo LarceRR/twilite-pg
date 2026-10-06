@@ -51,6 +51,7 @@ describe("runSubmitPipeline", () => {
     const result = await runSubmitPipeline({
       sheet,
       title: "lamp",
+      projectId: "22222222-2222-4222-8222-222222222222",
       buildManifest: manifest,
       state: createInitialPipelineState("3"),
       deps,
@@ -71,6 +72,7 @@ describe("runSubmitPipeline", () => {
       runSubmitPipeline({
         sheet,
         title: "lamp",
+        projectId: "22222222-2222-4222-8222-222222222222",
         buildManifest: manifest,
         state,
         deps,
@@ -90,6 +92,7 @@ describe("runSubmitPipeline", () => {
     await runSubmitPipeline({
       sheet,
       title: "lamp",
+      projectId: "22222222-2222-4222-8222-222222222222",
       buildManifest: manifest,
       state: prior,
       deps,

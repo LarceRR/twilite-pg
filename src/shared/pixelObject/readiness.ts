@@ -6,6 +6,7 @@ export function submitBlocker(input: {
   frameCount: number;
   opaque: boolean;
   canSubmit: boolean;
+  projectId?: string | null;
   width?: number;
   height?: number;
   canvasMax?: number;
@@ -18,6 +19,9 @@ export function submitBlocker(input: {
 
   if (!input.canSubmit) {
     return "Недостаточно прав, чтобы отправить объект на модерацию.";
+  }
+  if (!input.projectId) {
+    return "Выберите проект: откройте редактор из карточки проекта.";
   }
   const title = input.title.trim();
   if (title.length === 0) {

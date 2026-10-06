@@ -1,6 +1,7 @@
 import { Copy, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { MAX_LAYERS, useEditorCanvasStore } from "@/shared/store/editorCanvas";
+import { toast } from "@/shared/ui/Toast";
 import { EditorLayer } from "./components/Layer/Layer";
 import { LayerSettings } from "./components/LayerSettings/LayerSettings";
 import "./EditorLayers.scss";
@@ -17,13 +18,14 @@ export const EditorLayers = () => {
   const setLayerLocked = useEditorCanvasStore((state) => state.setLayerLocked);
 
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
-  const [error, setError] = useState<string | null>(null);
 
   // UI lists top layer first (like PS/Aseprite).
   const displayLayers = [...layers].reverse();
 
   const report = (result: { ok: true } | { ok: false; reason: string }) => {
-    setError(result.ok ? null : result.reason);
+    if (!result.ok) {
+      toast.warn("Слои", { description: result.reason });
+    }
   };
 
   const toggleExpanded = (id: string) => {
@@ -40,7 +42,7 @@ export const EditorLayers = () => {
           disabled={isDrawing || layers.length >= MAX_LAYERS}
           onClick={() => report(addLayer())}
         >
-          <Plus size={16} />
+          <Plus size={20} />
         </button>
         <button
           type="button"
@@ -49,7 +51,7 @@ export const EditorLayers = () => {
           disabled={isDrawing || layers.length >= MAX_LAYERS}
           onClick={() => report(duplicateLayer(activeLayerId))}
         >
-          <Copy size={16} />
+          <Copy size={20} />
         </button>
         <button
           type="button"
@@ -58,14 +60,12 @@ export const EditorLayers = () => {
           disabled={isDrawing || layers.length <= 1}
           onClick={() => report(deleteLayer(activeLayerId))}
         >
-          <Trash2 size={16} />
+          <Trash2 size={20} />
         </button>
         <span className="editor-layers__count">
           {layers.length}/{MAX_LAYERS}
         </span>
       </div>
-
-      {error ? <div className="editor-layers__error">{error}</div> : null}
 
       <div className="editor-layers__wrapper">
         {displayLayers.map((layer) => (

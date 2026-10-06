@@ -20,10 +20,11 @@ export type PixelObjectMobileDto = {
   staticPreviewFrame: number;
 };
 
-export type PixelObjectStatus = "pending" | "published" | "rejected";
+export type PixelObjectStatus = "pending" | "published" | "rejected" | "archived";
 
 export type PixelObjectDto = {
   id: string;
+  projectId: string;
   title: string;
   authorDisplayName: string;
   authorUserId: string;
@@ -32,6 +33,7 @@ export type PixelObjectDto = {
   revision: number;
   manifest: SubmitTpoManifest;
   sheetUrl: string;
+  previewUrl?: string | null;
   createdAt: string;
   updatedAt: string;
   reviewedAt: string | null;
@@ -45,6 +47,7 @@ export type PixelObjectListPage = {
 export type ListPixelObjectsQuery = {
   cursor?: string | null;
   limit?: number;
+  projectId?: string;
 };
 
 function listQuery(path: string, query?: ListPixelObjectsQuery): string {
@@ -54,6 +57,9 @@ function listQuery(path: string, query?: ListPixelObjectsQuery): string {
   }
   if (typeof query?.limit === "number") {
     params.set("limit", String(query.limit));
+  }
+  if (query?.projectId) {
+    params.set("projectId", query.projectId);
   }
   const suffix = params.toString();
   return suffix.length > 0 ? `${path}?${suffix}` : path;
@@ -122,6 +128,12 @@ export async function rejectPixelObject(id: string, comment: string): Promise<Pi
     method: "POST",
     body: JSON.stringify({ comment }),
   });
+  return response.json() as Promise<PixelObjectDto>;
+}
+
+/** Soft-delete: hides from catalog; surface placements stay. Only published objects. */
+export async function archivePixelObject(id: string): Promise<PixelObjectDto> {
+  const response = await apiFetch(`/v1/tpg/pixel-objects/${id}/archive`, { method: "POST" });
   return response.json() as Promise<PixelObjectDto>;
 }
 

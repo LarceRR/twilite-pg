@@ -1,0 +1,26 @@
+.my-projects-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.my-projects-header__text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem 0.85rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+}
+
+.my-projects-header__count {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}

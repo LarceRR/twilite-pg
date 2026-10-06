@@ -11,6 +11,7 @@
     flex-direction: column;
     background: color-mix(in oklch, var(--bg) 96%, white);
     border-left: 1px solid var(--line-soft);
+    border-top: 1px solid var(--line-soft);
 
     &__tabs-body {
         height: 100%;

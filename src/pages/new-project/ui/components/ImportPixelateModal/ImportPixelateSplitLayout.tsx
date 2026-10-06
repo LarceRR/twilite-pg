@@ -18,7 +18,6 @@ export function ImportPixelateSplitLayout({ left, right }: ImportPixelateSplitLa
 type ImportPixelatePreviewPaneProps = {
   isPreviewing: boolean;
   previewStale: boolean;
-  previewError: string | null;
   children: ReactNode;
   title?: string;
   caption?: string;
@@ -29,7 +28,6 @@ type ImportPixelatePreviewPaneProps = {
 export function ImportPixelatePreviewPane({
   isPreviewing,
   previewStale,
-  previewError,
   children,
   title = "Предпросмотр",
   caption,
@@ -49,11 +47,6 @@ export function ImportPixelatePreviewPane({
         ) : null}
       </div>
       {caption ? <p className="import-pixelate__hint">{caption}</p> : null}
-      {previewError ? (
-        <p className="import-pixelate__error" role="alert">
-          {previewError}
-        </p>
-      ) : null}
     </div>
   );
 }

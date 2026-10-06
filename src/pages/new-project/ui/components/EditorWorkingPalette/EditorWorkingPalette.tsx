@@ -1,5 +1,6 @@
 import { useEditorCanvasStore } from "@/shared/store/editorCanvas";
 import { useEditorPaletteStore } from "@/shared/store/editorPalette";
+import { confirm } from "@/shared/ui/Confirm";
 import "./EditorWorkingPalette.scss";
 
 export const EditorWorkingPalette = () => {
@@ -8,11 +9,11 @@ export const EditorWorkingPalette = () => {
   const setPrimaryColor = useEditorCanvasStore((state) => state.setPrimaryColor);
   const setSecondaryColor = useEditorCanvasStore((state) => state.setSecondaryColor);
 
-  const handleClear = () => {
+  const handleClear = async () => {
     if (colors.length === 0) {
       return;
     }
-    if (window.confirm("Очистить палитру?")) {
+    if (await confirm("Очистить палитру?")) {
       clearColors();
     }
   };

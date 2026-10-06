@@ -41,7 +41,7 @@ export type SubmitPipelineDeps = {
   putSheet: (ticket: UploadTicket, sheet: Blob) => Promise<void>;
   confirmUpload: (assetId: string, idempotencyKey: string) => Promise<void>;
   submitObject: (
-    input: { title: string; manifest: SubmitTpoManifest },
+    input: { title: string; projectId: string; manifest: SubmitTpoManifest },
     idempotencyKey: string,
   ) => Promise<unknown>;
   fingerprint: (sheet: Blob) => string;
@@ -87,6 +87,7 @@ export function resetPipelineIfSheetChanged(
 export async function runSubmitPipeline(input: {
   sheet: Blob;
   title: string;
+  projectId: string;
   buildManifest: (mediaId: string) => SubmitTpoManifest;
   state: SubmitPipelineState;
   deps: SubmitPipelineDeps;
@@ -103,7 +104,11 @@ export async function runSubmitPipeline(input: {
     }
     const mediaId = state.mediaId;
     const object = await input.deps.submitObject(
-      { title: input.title, manifest: input.buildManifest(mediaId) },
+      {
+        title: input.title,
+        projectId: input.projectId,
+        manifest: input.buildManifest(mediaId),
+      },
       state.submitKey,
     );
     state = { ...state, phase: "submitted", lastError: null };

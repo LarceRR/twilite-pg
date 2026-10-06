@@ -17,6 +17,7 @@ import {
   type ImagePreview,
   type ImportPixelateRequest,
 } from "./importFile";
+import { toast } from "@/shared/ui/Toast";
 import "./ImportPixelateModal.scss";
 
 export type { ImportPixelateRequest } from "./importFile";
@@ -42,7 +43,6 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
   );
 
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [commitError, setCommitError] = useState<string | null>(null);
   const [ontoActive, setOntoActive] = useState(false);
 
   const pipeline = usePixelateImportPipeline({ request, canPixelate, resultStep: "result" });
@@ -50,8 +50,6 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
     step: pipelineStep,
     setStep,
     preview,
-    error,
-    previewError,
     pixelSize,
     setPixelSize,
     paletteSize,
@@ -74,7 +72,6 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
   const isSettingsLayout = !showForbidden && step === "settings";
 
   useEffect(() => {
-    setCommitError(null);
     setOntoActive(false);
   }, [request]);
 
@@ -113,7 +110,7 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
       ontoActive,
     });
     if (!result.ok) {
-      setCommitError(result.reason);
+      toast.error(result.reason);
       return;
     }
     onClose();
@@ -125,8 +122,7 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
     pixelateResult !== null &&
     addBlockReason === null &&
     !isPreviewing &&
-    !previewStale &&
-    previewError === null;
+    !previewStale;
 
   return (
     <div
@@ -148,7 +144,7 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
         <header className="import-pixelate__header">
           <h2 id="import-pixelate-title">{title}</h2>
           <button type="button" className="import-pixelate__close" aria-label="Закрыть" onClick={onClose}>
-            <X size={16} aria-hidden="true" />
+            <X size={20} aria-hidden="true" />
           </button>
         </header>
 
@@ -165,8 +161,8 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
           ) : null}
 
           {!showForbidden && step === "error" ? (
-            <p className="import-pixelate__error" role="alert">
-              {error}
+            <p className="import-pixelate__hint" role="status">
+              Импорт не выполнен. Подробности — в уведомлении.
             </p>
           ) : null}
 
@@ -204,7 +200,6 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
                   />
                   <DocumentSizeFields
                     ontoActive={ontoActive}
-                    commitError={commitError}
                     addBlockReason={addBlockReason}
                     nativeWidth={pixelateResult?.nativeWidth ?? null}
                     nativeHeight={pixelateResult?.nativeHeight ?? null}
@@ -219,7 +214,6 @@ export function ImportPixelateModal({ request, onClose }: ImportPixelateModalPro
                 <ImportPixelatePreviewPane
                   isPreviewing={isPreviewing}
                   previewStale={previewStale}
-                  previewError={previewError}
                   hasPreview={nativePixels !== null && pixelateResult !== null}
                   title="Как выглядит сетка"
                   caption={
@@ -333,7 +327,6 @@ function ForbiddenNotice({ preview, loading }: { preview: ImagePreview | null; l
 
 function DocumentSizeFields({
   ontoActive,
-  commitError,
   addBlockReason,
   nativeWidth,
   nativeHeight,
@@ -343,7 +336,6 @@ function DocumentSizeFields({
   onOntoActive,
 }: {
   ontoActive: boolean;
-  commitError: string | null;
   addBlockReason: string | null;
   nativeWidth: number | null;
   nativeHeight: number | null;
@@ -386,11 +378,6 @@ function DocumentSizeFields({
       </label>
 
       {addBlockReason ? <p className="import-pixelate__warning">{addBlockReason}</p> : null}
-      {commitError ? (
-        <p className="import-pixelate__error" role="alert">
-          {commitError}
-        </p>
-      ) : null}
     </div>
   );
 }

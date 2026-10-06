@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  archivePixelObject,
   listMyPixelObjectsPage,
   listPixelObjectModerationPage,
   listPublishedPixelObjectsPage,
@@ -32,5 +33,23 @@ describe("pixelObjects list pagination", () => {
     expect(urls[2]).toContain("/v1/tpg/pixel-objects/moderation?");
     expect(urls[2]).toContain("limit=5");
     expect(catalog.nextCursor).toBe("cursor-2");
+  });
+});
+
+describe("archivePixelObject", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("POSTs to archive endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: "obj-1", status: "archived" }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await archivePixelObject("obj-1");
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/v1/tpg/pixel-objects/obj-1/archive");
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: "POST" });
   });
 });
