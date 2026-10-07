@@ -81,7 +81,7 @@ export {
   stampMaskIntoCoverage,
 } from "./model/strokeCoverage";
 export { compositeLayers, blendPremult } from "./model/composite";
-export { floodFill, samePixel, type FillConnectivity } from "./model/floodFill";
+export { floodFill, markFloodRegion, samePixel, type FillConnectivity } from "./model/floodFill";
 export {
   clampRectIntersectingSheet,
   clampRectToSheet,
@@ -114,6 +114,7 @@ export {
   isLayerDrawable,
   resetLayerIdSequence,
 } from "./model/layerFactory";
+export { captureEditorDraft, type EditorDraftSnapshot } from "./model/draftDocument";
 export { useEditorCanvasStore, __resetEditorCanvasStoreForTests } from "./model/editorCanvasStore";
 export type {
   BeginStrokeOptions,

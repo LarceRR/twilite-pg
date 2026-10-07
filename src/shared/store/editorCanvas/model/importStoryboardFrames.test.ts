@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { MAX_FRAMES } from "@/shared/pixelObject/constants";
 import { __resetEditorCanvasStoreForTests, useEditorCanvasStore } from "./editorCanvasStore";
-import { CANVAS_BYTE_LENGTH } from "./constants";
+import { CANVAS_BYTE_LENGTH, CANVAS_HEIGHT, CANVAS_WIDTH } from "./constants";
 import { resetLayerIdSequence } from "./layerFactory";
 import { createEmptyPixels } from "./pixels";
 
 function opaqueFrame(byte = 255): Uint8ClampedArray {
-  const pixels = createEmptyPixels(160, 160);
+  const pixels = createEmptyPixels(CANVAS_WIDTH, CANVAS_HEIGHT);
   pixels[0] = byte;
   pixels[3] = 255;
   return pixels;

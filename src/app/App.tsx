@@ -3,6 +3,8 @@ import { router } from "./providers/router";
 import { ThemeProvider } from "@/shared/lib/theme/ThemeContext";
 import { useAdaptiveSizes } from "@/shared/hooks/useAdaptiveSizes";
 import { useSessionBootstrap } from "@/app/providers/useSessionBootstrap";
+import { ConfirmHost } from "@/shared/ui/Confirm";
+import { Toaster } from "@/shared/ui/Toast";
 import './App.scss'
 
 function App() {
@@ -11,6 +13,8 @@ function App() {
 
   return (
     <ThemeProvider>
+      <Toaster />
+      <ConfirmHost />
       {adaptiveSize === "desktop" || adaptiveSize === "laptop" ? (
         sessionReady ? (
           <RouterProvider router={router} />

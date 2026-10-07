@@ -1,5 +1,6 @@
-import { apiFetch } from "@/shared/api/http";
 import type { SessionUser } from "@/shared/api/auth";
+import { apiFetch } from "@/shared/api/http";
+import { putApiUpload } from "@/shared/api/putApiUpload";
 
 export type AvatarContentType = "image/jpeg" | "image/png" | "image/webp";
 
@@ -25,23 +26,11 @@ export async function createAvatarUpload(input: {
   return response.json() as Promise<AvatarUploadTicket>;
 }
 
-/** Bytes go straight to R2 — do not use apiFetch (wrong host / extra headers break the signature). */
 export async function putAvatarToStorage(
   ticket: AvatarUploadTicket,
   file: Blob,
 ): Promise<void> {
-  const response = await fetch(ticket.uploadUrl, {
-    method: "PUT",
-    headers: {
-      "Content-Type": ticket.headers["Content-Type"],
-      "Cache-Control": ticket.headers["Cache-Control"],
-    },
-    body: file,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Не удалось загрузить файл (${response.status})`);
-  }
+  await putApiUpload(ticket.uploadUrl, file, ticket.headers);
 }
 
 export async function confirmAvatarUpload(assetId: string): Promise<SessionUser> {

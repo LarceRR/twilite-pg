@@ -2,6 +2,7 @@ import "./EditorPage.scss";
 import { useSidebarStore } from "@/shared/store/sidebar";
 import { useEditorCanvasStore } from "@/shared/store/editorCanvas";
 import { getEditorToolByName, useEditorSelectedToolStore } from "@/shared/store/editorSelectedTool";
+import { usePixelObjectLimitsStore } from "@/shared/store/pixelObjectLimits";
 import { APP_HOTKEYS } from "@/shared/const/hotkeys";
 import { useHotkey } from "@/shared/hooks/useHotkey";
 import React, { useEffect } from "react";
@@ -11,18 +12,27 @@ import { ImportPixelateModal } from "./components/ImportPixelateModal/ImportPixe
 import { useEditorImageImport } from "./components/ImportPixelateModal/useEditorImageImport";
 import { StoryboardImportModal } from "./components/StoryboardImportModal/StoryboardImportModal";
 import { useStoryboardImport } from "./components/StoryboardImportModal/useStoryboardImport";
+import { useObjectDraftSession } from "../model/useObjectDraftSession";
 import { EditorRightToolsSidebar } from "./components/EditorRightToolsSidebar/EditorRightToolsSidebar";
+import { ObjectTypePicker } from "./components/ObjectTypePicker/ObjectTypePicker";
 
 const EditorPage: React.FC = () => {
   const setSidebarOpen = useSidebarStore((state) => state.setSidebarOpen);
+  const fetchLimits = usePixelObjectLimitsStore((state) => state.fetchLimits);
+  const draftSession = useObjectDraftSession();
   const imageImport = useEditorImageImport();
   const storyboardImport = useStoryboardImport();
 
   useEffect(() => {
+    if (draftSession.phase !== "editor") {
+      setSidebarOpen(true);
+      return;
+    }
     setSidebarOpen(false);
+    void fetchLimits();
 
     return () => setSidebarOpen(true);
-  }, [setSidebarOpen]);
+  }, [draftSession.phase, fetchLimits, setSidebarOpen]);
 
   useHotkey(APP_HOTKEYS.UNDO, () => {
     useEditorCanvasStore.getState().undo();
@@ -139,6 +149,14 @@ const EditorPage: React.FC = () => {
   useHotkey(APP_HOTKEYS.NUDGE_DOWN, () => {
     nudgeSelection(0, 1);
   });
+
+  if (draftSession.phase === "pick-type") {
+    return <ObjectTypePicker onPick={draftSession.chooseType} />;
+  }
+
+  if (draftSession.phase === "loading") {
+    return <p className="editor-page__loading">Загрузка черновика…</p>;
+  }
 
   return (
     <div

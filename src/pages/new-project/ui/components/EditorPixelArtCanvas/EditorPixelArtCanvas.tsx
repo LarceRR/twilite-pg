@@ -13,6 +13,7 @@ import {
 import { useEditorViewportInteractions } from "./useEditorViewportInteractions";
 import { usePixelCanvasPointer } from "./usePixelCanvasPointer";
 import { SelectionOverlay } from "./SelectionOverlay";
+import { ToolHoverZone } from "./ToolHoverZone";
 import "./EditorPixelArtCanvas.scss";
 
 export const EditorPixelArtCanvas = () => {
@@ -180,6 +181,7 @@ export const EditorPixelArtCanvas = () => {
           </svg>
         )}
         <SelectionOverlay />
+        <ToolHoverZone canvasRef={canvasRef} />
       </div>
 
       {pointer.fillStatus ? (
@@ -196,7 +198,7 @@ export const EditorPixelArtCanvas = () => {
           title="Уменьшить масштаб (-)"
           aria-label="Уменьшить масштаб"
         >
-          <Minus size={16} aria-hidden="true" />
+          <Minus size={20} aria-hidden="true" />
         </button>
         <output aria-live="polite" title="Текущий масштаб">
           {zoom}×
@@ -208,7 +210,7 @@ export const EditorPixelArtCanvas = () => {
           title="Увеличить масштаб (+)"
           aria-label="Увеличить масштаб"
         >
-          <Plus size={16} aria-hidden="true" />
+          <Plus size={20} aria-hidden="true" />
         </button>
         <button
           type="button"
@@ -226,7 +228,7 @@ export const EditorPixelArtCanvas = () => {
           title={`Пиксельная сетка (видна с ${GRID_MIN_ZOOM}×)`}
           aria-label="Переключить пиксельную сетку"
         >
-          <Grid3X3 size={16} aria-hidden="true" />
+          <Grid3X3 size={20} aria-hidden="true" />
         </button>
       </div>
     </div>

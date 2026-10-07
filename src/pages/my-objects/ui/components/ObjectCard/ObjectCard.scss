@@ -1,0 +1,127 @@
+@use "@/shared/styles/mixins" as *;
+
+.object-card {
+  @include catalog-card;
+
+  &--selected {
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+}
+
+.object-card__preview {
+  @include catalog-preview;
+
+  &--openable {
+    cursor: pointer;
+  }
+
+  .editor-export__player {
+    @include catalog-preview-media;
+  }
+}
+
+.object-card__check,
+.object-card__menu {
+  position: absolute;
+  top: 8px;
+  z-index: 2;
+}
+
+.object-card__check {
+  left: 8px;
+  display: grid;
+  cursor: pointer;
+}
+
+.object-card__menu {
+  right: 8px;
+}
+
+.object-card__menu-trigger {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--bg) 55%, transparent);
+  color: var(--text);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--bg) 80%, white);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.object-card__body {
+  @include catalog-card-body;
+}
+
+.object-card__title {
+  @include catalog-card-title;
+}
+
+.object-card__tags {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  min-width: 0;
+  color: var(--text-muted);
+
+  svg {
+    flex: none;
+  }
+}
+
+.object-card__tag {
+  max-width: 8.5rem;
+  padding: 0.08rem 0.45rem;
+  overflow: hidden;
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--surface) 75%, white);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.object-card__footer {
+  @include catalog-card-footer;
+}
+
+.object-card__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.object-card__favorite {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text);
+    background: color-mix(in oklch, var(--bg) 80%, white);
+  }
+
+  &--on {
+    color: var(--persimmon);
+  }
+}

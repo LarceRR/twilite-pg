@@ -9,7 +9,9 @@ import { useEscapeKey } from "@/shared/hooks/useEscapeKey";
 import { hasPermission, TPG_PERMISSIONS } from "@/shared/lib/rbac";
 import { MAX_FRAMES, estimateNativeSize, useEditorCanvasStore } from "@/shared/store/editorCanvas";
 import { useSessionStore } from "@/shared/store/session";
+import { confirm } from "@/shared/ui/Confirm";
 import Input from "@/shared/ui/Input/Input";
+import { toast } from "@/shared/ui/Toast";
 import { formatByteSize, type ImportPixelateRequest } from "../ImportPixelateModal/importFile";
 import { usePixelateImportPipeline } from "../ImportPixelateModal/usePixelateImportPipeline";
 import { ImportPixelateSettingsFields } from "../ImportPixelateModal/ImportPixelateSettingsFields";
@@ -50,7 +52,6 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
   const hasContent = useEditorCanvasStore((state) => state.hasOpaqueDocument());
 
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [commitError, setCommitError] = useState<string | null>(null);
   const [commitMode, setCommitMode] = useState<"replace" | "append">("replace");
   const [showCommitPanel, setShowCommitPanel] = useState(false);
   const [frameDurationMs, setFrameDurationMs] = useState(DEFAULT_FRAME_DURATION_MS);
@@ -64,8 +65,6 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
     step: pipelineStep,
     setStep,
     preview,
-    error,
-    previewError,
     pixelSize,
     setPixelSize,
     paletteSize,
@@ -94,7 +93,6 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
   const needsCommitChoice = frameCount > 1 || hasContent;
 
   useEffect(() => {
-    setCommitError(null);
     setShowCommitPanel(false);
     setCommitMode("replace");
     setFrameDurationMs(DEFAULT_FRAME_DURATION_MS);
@@ -104,9 +102,15 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
     dialogRef.current?.focus();
   }, [step, showForbidden]);
 
-  const tryClose = () => {
+  const tryClose = async () => {
     if (step === "slicing" && slice.confirmedRects.length > 0) {
-      if (!window.confirm("Отменить нарезку? Выбранные кадры не сохранятся.")) {
+      const ok = await confirm({
+        title: "Отменить нарезку?",
+        description: "Выбранные кадры не сохранятся.",
+        confirmLabel: "Отменить",
+        danger: true,
+      });
+      if (!ok) {
         return;
       }
     }
@@ -163,15 +167,20 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
       frameDurationMs,
     });
     if (!result.ok) {
-      setCommitError(result.reason);
+      toast.error(result.reason);
       return;
     }
     onClose();
   };
 
-  const handleThumbSelect = (index: number) => {
+  const handleThumbSelect = async (index: number) => {
     if (index < slice.confirmedRects.length - 1) {
-      const ok = window.confirm(`Кадры после ${index + 1} будут удалены. Продолжить?`);
+      const ok = await confirm({
+        title: `Кадры после ${index + 1} будут удалены`,
+        description: "Продолжить?",
+        confirmLabel: "Продолжить",
+        danger: true,
+      });
       if (!ok) {
         return;
       }
@@ -187,8 +196,7 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
     nativePixels !== null &&
     pixelateResult !== null &&
     !isPreviewing &&
-    !previewStale &&
-    previewError === null;
+    !previewStale;
 
   return (
     <div
@@ -212,7 +220,7 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
         <header className="import-pixelate__header">
           <h2 id="storyboard-import-title">{title}</h2>
           <button type="button" className="import-pixelate__close" aria-label="Закрыть" onClick={tryClose}>
-            <X size={16} aria-hidden="true" />
+            <X size={20} aria-hidden="true" />
           </button>
         </header>
 
@@ -229,8 +237,8 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
           ) : null}
 
           {!showForbidden && step === "error" ? (
-            <p className="import-pixelate__error" role="alert">
-              {error}
+            <p className="import-pixelate__hint" role="status">
+              Импорт не выполнен. Подробности — в уведомлении.
             </p>
           ) : null}
 
@@ -279,7 +287,6 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
                 <ImportPixelatePreviewPane
                   isPreviewing={isPreviewing}
                   previewStale={previewStale}
-                  previewError={previewError}
                   hasPreview={nativePixels !== null && pixelateResult !== null}
                   title="Как выглядит лист"
                   caption="Лист вписан в область целиком. Крупность блока меняет число клеток, а не размер этой картинки."
@@ -407,11 +414,6 @@ export function StoryboardImportModalFlow({ request, onClose }: StoryboardImport
                     </p>
                   ) : null}
                 </div>
-              ) : null}
-              {commitError ? (
-                <p className="import-pixelate__error" role="alert">
-                  {commitError}
-                </p>
               ) : null}
             </>
           ) : null}

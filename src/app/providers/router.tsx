@@ -4,11 +4,13 @@ import { HomePage } from "@/pages/home";
 import { CabinetPage } from "@/pages/cabinet";
 import { AppRoutes } from "@/shared/const/routes";
 import { EditorPage } from "@/pages/new-project";
+import { MyProjectsPage } from "@/pages/my-projects";
 import LucideIconsPage from "@/pages/lucide-icons/ui/LucideIconsPage";
 import { LogInPage } from "@/pages/log-in";
 import { ThemeStudioPage } from "@/pages/theme-studio";
 import { ThemeModerationPage } from "@/pages/theme-moderation";
 import { PixelObjectModerationPage } from "@/pages/pixel-object-moderation";
+import { MyObjectsPage } from "@/pages/my-objects";
 import { ObjectCatalogPage } from "@/pages/object-catalog";
 import { RequireAuth } from "@/app/providers/RequireAuth";
 import { RequirePermission } from "@/app/providers/RequirePermission";
@@ -28,14 +30,21 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <HomePage /> },
-      { path: AppRoutes[0].routes.MYPROJECTS.path, element: <span>Projects</span> },
+      {
+        path: AppRoutes[0].routes.MYPROJECTS.path,
+        element: (
+          <RequirePermission permission={TPG_PERMISSIONS.EDITOR_VIEW}>
+            <MyProjectsPage />
+          </RequirePermission>
+        ),
+      },
       {
         path: AppRoutes[0].routes.MYOBJECTS.path,
         element: (
           <RequirePermission
             anyOf={[TPG_PERMISSIONS.PIXEL_OBJECTS_SUBMIT, TPG_PERMISSIONS.PIXEL_OBJECTS_CREATE]}
           >
-            <ObjectCatalogPage mode="mine" />
+            <MyObjectsPage />
           </RequirePermission>
         ),
       },
@@ -51,7 +60,11 @@ export const router = createBrowserRouter([
         path: AppRoutes[0].routes.NEWPROJECT.path,
         element: (
           <RequirePermission
-            allOf={[TPG_PERMISSIONS.EDITOR_VIEW, TPG_PERMISSIONS.EDITOR_CREATE_PROJECT]}
+            anyOf={[
+              TPG_PERMISSIONS.PIXEL_OBJECTS_CREATE,
+              TPG_PERMISSIONS.PIXEL_OBJECTS_SUBMIT,
+              TPG_PERMISSIONS.EDITOR_VIEW,
+            ]}
           >
             <EditorPage />
           </RequirePermission>

@@ -81,6 +81,8 @@ export const EditorToolSettiings = () => {
   const revision = useEditorCanvasStore((state) => state.revision);
   const isDrawing = useEditorCanvasStore((state) => state.isDrawing);
   const exportPngBlob = useEditorCanvasStore((state) => state.exportPngBlob);
+  const width = useEditorCanvasStore((state) => state.width);
+  const height = useEditorCanvasStore((state) => state.height);
 
   const activeLayer = useEditorCanvasStore((state) =>
     state.layers.find((layer) => layer.id === state.activeLayerId),
@@ -110,7 +112,7 @@ export const EditorToolSettiings = () => {
   const handleExport = async () => {
     try {
       const blob = await exportPngBlob();
-      downloadBlob(blob, "pixel-art-160.png");
+      downloadBlob(blob, `pixel-art-${width}x${height}.png`);
     } catch {
       // Export failures are rare (missing 2d context); keep UI quiet for MVP.
     }
@@ -135,7 +137,7 @@ export const EditorToolSettiings = () => {
           title="Swap colors"
           aria-label="Swap colors"
         >
-          <ArrowLeftRight size={16} />
+          <ArrowLeftRight size={20} />
         </button>
         <ColorPicker
           className="editor-tool-settings__swatch"
@@ -215,7 +217,7 @@ export const EditorToolSettiings = () => {
           title="Undo"
           aria-label="Undo"
         >
-          <Undo2 size={16} />
+          <Undo2 size={20} />
         </button>
         <button
           type="button"
@@ -225,7 +227,7 @@ export const EditorToolSettiings = () => {
           title="Redo"
           aria-label="Redo"
         >
-          <Redo2 size={16} />
+          <Redo2 size={20} />
         </button>
       </div>
     </div>

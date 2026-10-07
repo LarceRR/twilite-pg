@@ -1,15 +1,17 @@
 /** Canonical delivery format. GIF/APNG are artist downloads only. */
-export const TPO_FORMAT = "twilite.pixelobject/v1" as const;
+import { DEFAULT_PIXEL_OBJECT_LIMITS, PIXEL_OBJECT_FORMAT } from "@/shared/contracts";
 
-/** Matches backend production `LIMIT_TPG_PIXEL_OBJECT_MAX_FRAMES`. */
-export const MAX_FRAMES = 64;
+export const TPO_FORMAT = PIXEL_OBJECT_FORMAT;
 
-/** Matches backend production `LIMIT_TPG_PIXEL_OBJECT_SHEET_MAX_BYTES`. */
-export const MAX_SHEET_BYTES = 8 * 1024 * 1024;
+/** Matches backend production limits (overridable via GET /limits). */
+export const MAX_FRAMES = DEFAULT_PIXEL_OBJECT_LIMITS.maxFrames;
+
+/** Matches backend production sheet byte cap (overridable via GET /limits). */
+export const MAX_SHEET_BYTES = DEFAULT_PIXEL_OBJECT_LIMITS.sheetMaxBytes;
 
 export const DEFAULT_FRAME_DURATION_MS = 100;
-export const MIN_FRAME_DURATION_MS = 16;
-export const MAX_FRAME_DURATION_MS = 10_000;
+export const MIN_FRAME_DURATION_MS = DEFAULT_PIXEL_OBJECT_LIMITS.minFrameDurationMs;
+export const MAX_FRAME_DURATION_MS = DEFAULT_PIXEL_OBJECT_LIMITS.maxFrameDurationMs;
 
 export const EXPORT_SCALES = [1, 2, 4, 8] as const;
 export type ExportScale = (typeof EXPORT_SCALES)[number];

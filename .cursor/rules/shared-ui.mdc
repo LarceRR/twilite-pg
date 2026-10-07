@@ -10,7 +10,9 @@ alwaysApply: true
 - `Input` — однострочные текстовые и числовые поля. Цвет, range, checkbox, radio, select и textarea сюда не подменяй.
 - `ColorPicker` — выбор цвета `#rrggbb` (как `input type="color"`), панель с SV/hue/hex и до 20 недавних цветов
 - `LiquidGlassButton` — стеклянные кнопки
-- `Tooltip`, `Modal`, `KeybindHint`, `CounterBadge`
+- `Tooltip`, `Popover` + `PopoverItem` (пункты Delete/Удалить — danger-цвет текста/иконки), `Modal`, `Confirm` / `ConfirmHost` (`confirm()` / `alert()` / `dialog.*` — Promise API, ждёт клик по модалке), `KeybindHint`, `CounterBadge`
+- `Toast` / `Toaster` — глобальные уведомления (`toast.info|warn|success|error`), стек справа сверху, hover раскрывает группу и замораживает таймер/полоску, дубликаты через `xN`; `error` не авто-закрывается (только крестик); снизу 2px countdown-полоска цвета типа
+
 - `Layout`, `Navbar`, `Sidebar`, `Can`, `Logo`
 
 Числовое поле с минимумом и максимумом не зажимает текст на каждый символ. Пока оно в фокусе, в нём ровно введённый текст, включая пустую строку. Границы применяются на blur или Enter через `commitOnBlur`.

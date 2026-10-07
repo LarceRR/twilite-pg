@@ -59,9 +59,9 @@ export const EditorLayer = ({
     >
       <div className="editor-layer__left-side">
         {isHidden ? (
-          <EyeClosed size={16} onClick={handleHide} />
+          <EyeClosed size={20} onClick={handleHide} />
         ) : (
-          <Eye size={16} onClick={handleHide} />
+          <Eye size={20} onClick={handleHide} />
         )}
         <LayerThumbnail layerId={layerId} />
         <span>{name}</span>
@@ -73,9 +73,9 @@ export const EditorLayer = ({
           <LockOpen size={14} onClick={handleLock} />
         )}
         {isExpanded ? (
-          <ChevronDown size={16} onClick={handleExpand} />
+          <ChevronDown size={20} onClick={handleExpand} />
         ) : (
-          <ChevronRight size={16} onClick={handleExpand} />
+          <ChevronRight size={20} onClick={handleExpand} />
         )}
       </div>
     </div>

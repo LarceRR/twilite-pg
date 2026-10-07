@@ -36,7 +36,7 @@ function ModalHeader({ titleId, title, onClose }: { titleId: string; title: stri
         {title}
       </h2>
       <button type="button" className="modal__close" aria-label="Close" onClick={onClose}>
-        <X size={16} aria-hidden="true" />
+        <X size={20} aria-hidden="true" />
       </button>
     </header>
   );

@@ -1,7 +1,9 @@
 import type { BrushShape } from "./brushShapes";
 
 const stampCache = new Map<string, Uint8Array>();
-const STAMP_CACHE_VERSION = 2;
+const STAMP_CACHE_VERSION = 3;
+/** Samples per axis inside each cell so the feather is an area average, not one point. */
+const FALLOFF_SAMPLES_PER_AXIS = 4;
 
 function cacheKey(shape: BrushShape, size: number, softness: number): string {
   return `${STAMP_CACHE_VERSION}:${shape}:${size}:${softness}`;
@@ -16,9 +18,13 @@ export function softnessToHardness(softness: number): number {
 /**
  * Convert normalized distance t and hardness into stamp alpha 0..255.
  * Size=1 always opaque (softness ignored).
+ *
+ * The feather is linear in t. A quadratic ramp collapses most of the edge
+ * into a near-transparent fringe, so the brush looks smaller than its size
+ * and the steps are uneven.
  */
 export function falloffAlpha(t: number, hardness: number, softness: number): number {
-  if (t > 1) {
+  if (t >= 1) {
     return 0;
   }
   if (hardness >= 1 || softness <= 0) {
@@ -33,7 +39,10 @@ export function falloffAlpha(t: number, hardness: number, softness: number): num
     return 255;
   }
   const u = (t - hardRadius) / denom;
-  return Math.round(255 * (1 - u) * (1 - u));
+  if (u >= 1) {
+    return 0;
+  }
+  return Math.round(255 * (1 - u));
 }
 
 function filledMetricDistance(shape: BrushShape, rdx: number, rdy: number): number {
@@ -47,9 +56,27 @@ function filledMetricDistance(shape: BrushShape, rdx: number, rdy: number): numb
   }
 }
 
+function continuousStampAlpha(
+  shape: BrushShape,
+  brushSize: number,
+  softness: number,
+  x: number,
+  y: number,
+): number {
+  const center = (brushSize - 1) / 2;
+  const distance = filledMetricDistance(shape, x - center, y - center);
+  const radius = brushSize / 2;
+  if (distance >= radius) {
+    return 0;
+  }
+  return falloffAlpha(distance / radius, softnessToHardness(softness), softness);
+}
+
 /**
  * Alpha for one stamp cell. Local coords lx,ly ∈ [0, size).
  * Falloff uses the shape metric so soft squares stay square.
+ * Soft cells are area-sampled so the ramp changes inside a pixel instead of
+ * jumping between whole rings.
  */
 export function stampCellAlpha(
   shape: BrushShape,
@@ -63,23 +90,34 @@ export function stampCellAlpha(
     return 255;
   }
 
-  const center = (brushSize - 1) / 2;
-  const rdx = lx - center;
-  const rdy = ly - center;
-  const distance = filledMetricDistance(shape, rdx, rdy);
-  const supportRadius = brushSize % 2 === 0 ? brushSize / 2 : (brushSize - 1) / 2;
-  if (distance > supportRadius) {
-    return 0;
+  const s = Math.min(100, Math.max(0, softness));
+  if (s <= 0) {
+    const center = (brushSize - 1) / 2;
+    const distance = filledMetricDistance(shape, lx - center, ly - center);
+    const supportRadius = brushSize % 2 === 0 ? brushSize / 2 : (brushSize - 1) / 2;
+    return distance > supportRadius ? 0 : 255;
   }
 
-  // Sample at cell centers against the geometric (size / 2) radius. Using
-  // (size - 1) / 2 puts every outer cell at t=1, where any softness makes it
-  // fully transparent and shrinks a size-N brush by two pixels.
-  const t = distance / (brushSize / 2);
-  const H = softnessToHardness(softness);
-  const s = Math.min(100, Math.max(0, softness));
+  const n = FALLOFF_SAMPLES_PER_AXIS;
+  const step = 1 / n;
+  const origin = step * 0.5 - 0.5;
+  let sum = 0;
+  for (let sy = 0; sy < n; sy += 1) {
+    const y = ly + origin + sy * step;
+    for (let sx = 0; sx < n; sx += 1) {
+      const x = lx + origin + sx * step;
+      sum += continuousStampAlpha(shape, brushSize, s, x, y);
+    }
+  }
+  let alpha = Math.round(sum / (n * n));
 
-  return falloffAlpha(t, H, s);
+  // The sample grid misses the exact center, which would dim the core pixel.
+  const center = (brushSize - 1) / 2;
+  if (Math.abs(lx - center) < 0.5 && Math.abs(ly - center) < 0.5) {
+    alpha = Math.max(alpha, continuousStampAlpha(shape, brushSize, s, center, center));
+  }
+
+  return alpha;
 }
 
 /** Precompute size×size alpha mask; cached by shape/size/softness. */

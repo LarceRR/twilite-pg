@@ -4,6 +4,7 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   height: 100dvh;
+  background: #0e192a;
   overflow: hidden;
 }
 
@@ -17,6 +18,10 @@
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
+  background: #071122;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  box-shadow: inset 2px 1px 15px 0 rgba(0, 0, 0, 0.1);
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklch, var(--text) 28%, transparent) transparent;

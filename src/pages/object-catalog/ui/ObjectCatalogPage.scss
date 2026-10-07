@@ -46,6 +46,49 @@
     padding: 0.75rem;
     border-radius: 12px;
   }
+
+  &__edit,
+  &__delete,
+  &__more {
+    align-self: flex-start;
+    margin-top: 0.25rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+
+    .object-catalog__edit,
+    .object-catalog__delete {
+      margin-top: 0;
+    }
+  }
+
+  &__delete {
+    border-color: color-mix(in oklch, var(--persimmon) 40%, transparent);
+    color: var(--persimmon);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in oklch, var(--persimmon) 12%, transparent);
+    }
+  }
+
+  &__more {
+    align-self: center;
+  }
 }
 
 .mobile-loop {

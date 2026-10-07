@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   __resetEditorCanvasStoreForTests,
@@ -8,12 +8,18 @@ import {
   __resetEditorPaletteStoreForTests,
   useEditorPaletteStore,
 } from "@/shared/store/editorPalette";
+import { confirm } from "@/shared/ui/Confirm";
 import { EditorWorkingPalette } from "./EditorWorkingPalette";
+
+vi.mock("@/shared/ui/Confirm", () => ({
+  confirm: vi.fn(),
+}));
 
 describe("EditorWorkingPalette", () => {
   beforeEach(() => {
     __resetEditorCanvasStoreForTests();
     __resetEditorPaletteStoreForTests();
+    vi.mocked(confirm).mockReset();
   });
 
   afterEach(() => {
@@ -38,13 +44,27 @@ describe("EditorWorkingPalette", () => {
     expect(useEditorCanvasStore.getState().secondaryColor).toBe("#ff0000");
   });
 
-  it("clears the palette after confirmation", () => {
+  it("clears the palette after confirmation", async () => {
     useEditorPaletteStore.getState().addColor("#00ff00", "picker");
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(confirm).mockResolvedValue(true);
     render(<EditorWorkingPalette />);
 
     fireEvent.click(screen.getByRole("button", { name: "Очистить" }));
-    expect(window.confirm).toHaveBeenCalled();
-    expect(useEditorPaletteStore.getState().colors).toHaveLength(0);
+    expect(confirm).toHaveBeenCalledWith("Очистить палитру?");
+    await waitFor(() => {
+      expect(useEditorPaletteStore.getState().colors).toHaveLength(0);
+    });
+  });
+
+  it("keeps the palette when confirmation is cancelled", async () => {
+    useEditorPaletteStore.getState().addColor("#00ff00", "picker");
+    vi.mocked(confirm).mockResolvedValue(false);
+    render(<EditorWorkingPalette />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Очистить" }));
+    await waitFor(() => {
+      expect(confirm).toHaveBeenCalled();
+    });
+    expect(useEditorPaletteStore.getState().colors).toHaveLength(1);
   });
 });

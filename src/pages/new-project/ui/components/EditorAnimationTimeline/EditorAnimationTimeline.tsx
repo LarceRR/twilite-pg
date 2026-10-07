@@ -1,8 +1,9 @@
 import { ChevronLeft, ChevronRight, Grid2x2, Layers, Pause, Play, Plus, Trash2 } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { MAX_FRAME_DURATION_MS, MIN_FRAME_DURATION_MS } from "@/shared/pixelObject/constants";
 import { MAX_FRAMES, useEditorCanvasStore } from "@/shared/store/editorCanvas";
 import Input from "@/shared/ui/Input/Input";
+import { toast } from "@/shared/ui/Toast";
 import { FrameThumbnail } from "./FrameThumbnail";
 import { frameDragShift, useFrameStripDrag } from "./useFrameStripDrag";
 import "./EditorAnimationTimeline.scss";
@@ -28,7 +29,6 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
   const playPreview = useEditorCanvasStore((state) => state.playPreview);
   const pausePlayback = useEditorCanvasStore((state) => state.pausePlayback);
   const toggleOnionSkin = useEditorCanvasStore((state) => state.toggleOnionSkin);
-  const [error, setError] = useState<string | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const flipRef = useRef<Map<string, DOMRect> | null>(null);
 
@@ -38,7 +38,9 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
   const busy = isDrawing || isPlaying;
 
   const report = (result: { ok: true } | { ok: false; reason: string }) => {
-    setError(result.ok ? null : result.reason);
+    if (!result.ok) {
+      toast.warn("Таймлайн", { description: result.reason });
+    }
   };
 
   const captureFlip = () => {
@@ -135,7 +137,7 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
           disabled={busy || !onStoryboardImport}
           onClick={() => onStoryboardImport?.()}
         >
-          <Grid2x2 size={16} aria-hidden />
+          <Grid2x2 size={20} aria-hidden />
           <span>Раскадровка</span>
         </button>
         <button
@@ -145,7 +147,7 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
           disabled={busy || frames.length >= MAX_FRAMES}
           onClick={() => report(addFrame())}
         >
-          <Plus size={16} />
+          <Plus size={20} />
         </button>
         <button
           type="button"
@@ -154,7 +156,7 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
           disabled={busy || frames.length <= 1}
           onClick={() => active && report(deleteFrame(active.id))}
         >
-          <Trash2 size={16} />
+          <Trash2 size={20} />
         </button>
         <button
           type="button"
@@ -163,7 +165,7 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
           disabled={busy || activeIndex <= 0}
           onClick={() => report(moveFrame(-1))}
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={20} />
         </button>
         <button
           type="button"
@@ -172,7 +174,7 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
           disabled={busy || activeIndex < 0 || activeIndex >= frames.length - 1}
           onClick={() => report(moveFrame(1))}
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={20} />
         </button>
         <button
           type="button"
@@ -182,7 +184,7 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
           disabled={isDrawing}
           onClick={() => (isPlaying ? pausePlayback() : playPreview())}
         >
-          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+          {isPlaying ? <Pause size={20} /> : <Play size={20} />}
         </button>
         <button
           type="button"
@@ -191,7 +193,7 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
           aria-pressed={onionSkin}
           onClick={() => toggleOnionSkin()}
         >
-          <Layers size={16} />
+          <Layers size={20} />
         </button>
         <div className="editor-animation-timeline__duration">
           <span>мс</span>
@@ -220,7 +222,6 @@ export const EditorAnimationTimeline = ({ onStoryboardImport }: EditorAnimationT
           </span>
         </span>
       </div>
-      {error ? <div className="editor-animation-timeline__error">{error}</div> : null}
       <div
         ref={stripRef}
         className={`editor-animation-timeline__strip${drag ? " is-dragging" : ""}`}

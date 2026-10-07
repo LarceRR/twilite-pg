@@ -1,5 +1,5 @@
-export const CANVAS_WIDTH = 160;
-export const CANVAS_HEIGHT = 160;
+export const CANVAS_WIDTH = 70;
+export const CANVAS_HEIGHT = 70;
 
 /** Longest side a document may adopt from an import. */
 export const MAX_DOCUMENT_EDGE = 1024;

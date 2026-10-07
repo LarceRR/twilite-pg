@@ -113,3 +113,40 @@ export function packSheet(
 
   return { pixels, width, height, columns, rows };
 }
+
+/** Slice packed spritesheet cells back into frame buffers (row-major). */
+export function unpackSheet(input: {
+  pixels: Uint8ClampedArray;
+  sheetWidth: number;
+  sheetHeight: number;
+  frameWidth: number;
+  frameHeight: number;
+  columns: number;
+  frameCount: number;
+}): Uint8ClampedArray[] {
+  const { frameWidth, frameHeight, columns, frameCount } = input;
+  const expectedSheet = input.sheetWidth * input.sheetHeight * 4;
+  if (input.pixels.length !== expectedSheet) {
+    throw new Error("Размер spritesheet не совпадает с манифестом");
+  }
+  if (frameCount < 1 || frameCount > MAX_FRAMES) {
+    throw new Error(`Нужно от 1 до ${MAX_FRAMES} кадров`);
+  }
+  if (input.sheetWidth < frameWidth * columns) {
+    throw new Error("Сетка spritesheet меньше ожидаемой");
+  }
+
+  const frames: Uint8ClampedArray[] = [];
+  for (let index = 0; index < frameCount; index += 1) {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+    const frame = new Uint8ClampedArray(frameWidth * frameHeight * 4);
+    for (let y = 0; y < frameHeight; y += 1) {
+      const src = ((row * frameHeight + y) * input.sheetWidth + col * frameWidth) * 4;
+      const dst = y * frameWidth * 4;
+      frame.set(input.pixels.subarray(src, src + frameWidth * 4), dst);
+    }
+    frames.push(frame);
+  }
+  return frames;
+}

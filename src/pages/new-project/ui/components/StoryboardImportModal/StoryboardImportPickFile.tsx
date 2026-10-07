@@ -1,14 +1,13 @@
 import { Upload } from "lucide-react";
 import { useRef, useState, type DragEvent } from "react";
+import { toast } from "@/shared/ui/Toast";
 import { classifyImportFile, pickImportFile } from "../ImportPixelateModal/importFile";
 
 type StoryboardImportPickFileProps = {
   onFile: (file: File) => void;
-  error: string | null;
-  onError: (message: string | null) => void;
 };
 
-export function StoryboardImportPickFile({ onFile, error, onError }: StoryboardImportPickFileProps) {
+export function StoryboardImportPickFile({ onFile }: StoryboardImportPickFileProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dropActive, setDropActive] = useState(false);
   const depth = useRef(0);
@@ -16,10 +15,9 @@ export function StoryboardImportPickFile({ onFile, error, onError }: StoryboardI
   const acceptFile = (file: File | null) => {
     const classified = classifyImportFile(file);
     if (!classified.ok) {
-      onError(classified.reason);
+      toast.error(classified.reason);
       return;
     }
-    onError(null);
     onFile(classified.file);
   };
 
@@ -90,11 +88,6 @@ export function StoryboardImportPickFile({ onFile, error, onError }: StoryboardI
           }}
         />
       </div>
-      {error ? (
-        <p className="import-pixelate__error" role="alert">
-          {error}
-        </p>
-      ) : null}
     </div>
   );
 }

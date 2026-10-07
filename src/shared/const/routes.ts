@@ -44,7 +44,7 @@ export const AppRoutes = [
       },
       NEWPROJECT: {
         path: "/new-project",
-        name: "Новый проект",
+        name: "Редактор",
         inPagesList: true,
         icon: Plus
       },
@@ -58,7 +58,7 @@ export const AppRoutes = [
   },
   {
     label: 'Библиотека',
-    inSideBar: true,
+    inSideBar: false,
     routes: {
       FAVORITES: {
         path: "/favorites",

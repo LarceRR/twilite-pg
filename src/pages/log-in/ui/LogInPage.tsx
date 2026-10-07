@@ -145,9 +145,6 @@ export default function LogInPage() {
                   minLength={1}
                 />
               </label>
-              {password.error ? (
-                <p className="login-page__status login-page__status--error">{password.error}</p>
-              ) : null}
               <button type="submit" className="login-page__submit" disabled={password.pending}>
                 {password.pending ? "Входим…" : "Войти"}
               </button>

@@ -25,6 +25,7 @@
     flex-direction: column;
     background: color-mix(in oklch, var(--bg) 96%, white);
     border-right: 1px solid var(--line-soft);
+    border-left: 1px solid var(--line-soft);
   }
 
   &__rail-tool-more {

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { fetchPixelObjectSheet } from "@/shared/pixelObject/fetchPixelObjectSheet";
 import type { SubmitTpoManifest } from "@/shared/pixelObject/manifest";
 
 type SheetPlayerProps = {
@@ -6,7 +7,7 @@ type SheetPlayerProps = {
   manifest: SubmitTpoManifest;
 };
 
-/** Draws the default loop from a spritesheet. drawImage does not need CORS. */
+/** Draws the default loop from a spritesheet loaded through the API. */
 export const SheetPlayer = ({ sheetUrl, manifest }: SheetPlayerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { frameWidth, frameHeight, columns } = manifest.sheet;
@@ -32,6 +33,8 @@ export const SheetPlayer = ({ sheetUrl, manifest }: SheetPlayerProps) => {
     let timer = 0;
     let frameIndex = 0;
     let cancelled = false;
+    let objectUrl: string | null = null;
+    const abort = new AbortController();
 
     const draw = () => {
       const entry = frames[frameIndex];
@@ -66,12 +69,30 @@ export const SheetPlayer = ({ sheetUrl, manifest }: SheetPlayerProps) => {
       draw();
       schedule();
     };
-    image.src = sheetUrl;
+
+    void fetchPixelObjectSheet(sheetUrl, abort.signal)
+      .then((blob) => {
+        if (cancelled) {
+          return;
+        }
+        objectUrl = URL.createObjectURL(blob);
+        image.src = objectUrl;
+      })
+      .catch((error: unknown) => {
+        if (cancelled || (error instanceof DOMException && error.name === "AbortError")) {
+          return;
+        }
+      });
 
     return () => {
       cancelled = true;
+      abort.abort();
       window.clearTimeout(timer);
       image.onload = null;
+      image.src = "";
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
     };
   }, [columns, frameHeight, frameWidth, frames, sheetUrl]);
 

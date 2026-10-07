@@ -1,0 +1,102 @@
+@use "@/shared/styles/mixins" as *;
+
+.project-card {
+  cursor: pointer;
+  @include catalog-card;
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 0 0 1px var(--accent);
+    outline: none;
+  }
+}
+
+.project-card__preview {
+  @include catalog-preview;
+
+  img {
+    @include catalog-preview-media;
+  }
+}
+
+.project-card__mark {
+  color: var(--text);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.project-card__menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+}
+
+.project-card__menu-trigger {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--bg) 55%, transparent);
+  color: var(--text);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--bg) 80%, white);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.project-card__body {
+  @include catalog-card-body;
+}
+
+.project-card__title {
+  @include catalog-card-title;
+}
+
+.project-card__tags {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  min-width: 0;
+  color: var(--text-muted);
+
+  svg {
+    flex: none;
+  }
+}
+
+.project-card__tag {
+  max-width: 8.5rem;
+  padding: 0.08rem 0.45rem;
+  overflow: hidden;
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--surface) 75%, white);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-card__footer {
+  @include catalog-card-footer;
+}
+
+.project-card__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}

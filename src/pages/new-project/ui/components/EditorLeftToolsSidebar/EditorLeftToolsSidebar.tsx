@@ -3,6 +3,7 @@ import { Circle, Lasso, SquareDashed, WandSparkles } from "lucide-react";
 import { useEditorCanvasStore, type SelectionTool } from "@/shared/store/editorCanvas";
 import { useEditorPaletteStore } from "@/shared/store/editorPalette";
 import { EDITOR_TOOLS, useEditorSelectedToolStore, type IEditorTool } from "@/shared/store/editorSelectedTool";
+import { confirm } from "@/shared/ui/Confirm";
 import "./EditorLeftToolsSidebar.scss";
 
 const SELECTION_ICONS: Record<SelectionTool, typeof SquareDashed> = {
@@ -32,9 +33,9 @@ export const EditorLeftToolsSidebar = () => {
     setPaletteOpen(tool.name === "Palette");
   };
 
-  const handleClearPalette = () => {
+  const handleClearPalette = async () => {
     if (colors.length === 0) return;
-    if (window.confirm("Очистить палитру?")) {
+    if (await confirm("Очистить палитру?")) {
       clearColors();
     }
   };

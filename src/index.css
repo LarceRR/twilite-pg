@@ -23,29 +23,31 @@
   --line-soft: color-mix(in oklch, var(--surface) 95%, white);
 
   /* --- Основной акцент (Electric Indigo — главный цвет 2026) --- */
-  --accent: oklch(0.83 0.16 79.85);
+  --accent: #f8a021;
   --accent-ink: oklch(98% 0.005 280);
   --accent-wash: oklch(0.92 0.08 79.85 / 0.14);
   --accent-line: oklch(72% 0.12 280);
   --accent-shadow: oklch(52% 0.24 280 / 0.2);
 
-  /* --- Трендовые акценты 2026 (без зеленого) --- */
+  /* --- Трендовые акценты 2026 --- */
   --persimmon: oklch(62% 0.18 35);
   --aura-pink: oklch(68% 0.16 10);
   --digital-lavender: oklch(62% 0.14 300);
   --deep-plum: oklch(32% 0.12 310);
   --cobalt: oklch(45% 0.22 245);
+  --success: oklch(55% 0.14 145);
 
   /* --- Дополнительные акценты --- */
   --coral: oklch(62% 0.18 30);
   --amber: oklch(65% 0.16 70);
   --violet: oklch(54% 0.16 300);
+  --green: var(--success);
 
   /* --- Фокус --- */
   --focus: oklch(48% 0.2 260);
 
-  --primary: oklch(0.83 0.16 79.85);
-  --primary-wash: oklch(0.92 0.08 79.85 / 0.17);
+  --primary: var(--accent);
+  --primary-wash: var(--accent-wash);
 }
 
 :root[data-theme="dark"] {
@@ -59,35 +61,37 @@
   --preview-bg: var(--bg);-preview-bg: oklch(21% 0.012 40);
 
   /* --- Светлый текст на темном --- */
-  --text: oklch(0.78 0.02 242.99);
-  --text-muted: oklch(68% 0.01 40);
+  --text: oklch(78% 0.019 245);
+  --text-muted: oklch(65% 0.022 250);
 
   /* --- Линии в темной теме --- */
   --line: oklch(30% 0.015 40);
   --line-soft: color-mix(in oklch, var(--surface) 95%, white);
 
   /* --- Акцент (яркий индиго в темной теме) --- */
-  --accent: oklch(0.83 0.16 79.85);
+  --accent: #f8a021;
   --accent-ink: oklch(16% 0.01 280);
   --accent-wash: oklch(0.92 0.08 79.85 / 0.14);
   --accent-line: oklch(45% 0.1 280);
   --accent-shadow: oklch(72% 0.2 280 / 0.15);
 
-  /* --- Трендовые акценты в темной теме (без зеленого) --- */
+  /* --- Трендовые акценты в темной теме --- */
   --persimmon: oklch(72% 0.16 35);
   --aura-pink: oklch(78% 0.14 10);
   --digital-lavender: oklch(72% 0.12 300);
   --deep-plum: oklch(42% 0.12 310);
   --cobalt: oklch(55% 0.2 245);
+  --success: oklch(72% 0.14 145);
 
   --coral: oklch(72% 0.16 30);
   --amber: oklch(75% 0.14 70);
   --violet: oklch(68% 0.14 300);
+  --green: var(--success);
 
   --focus: oklch(75% 0.15 260);
 
-  --primary: oklch(0.83 0.16 79.85);
-  --primary-wash: oklch(0.92 0.08 79.85 / 0.17);
+  --primary: var(--accent);
+  --primary-wash: var(--accent-wash);
 }
 
 #root {

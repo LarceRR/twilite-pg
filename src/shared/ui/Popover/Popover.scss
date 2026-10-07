@@ -1,0 +1,23 @@
+.popover {
+  position: fixed;
+  z-index: 250;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 16px));
+  box-sizing: border-box;
+  overflow: auto;
+  overscroll-behavior: contain;
+
+  &[data-ready="false"] {
+    visibility: hidden;
+  }
+}
+
+/* Beat consumer item colors like `.menu button { color: var(--text) }`. */
+.popover :is(button, a, label).popover__danger {
+  color: var(--persimmon);
+
+  svg {
+    color: inherit;
+    stroke: currentColor;
+  }
+}

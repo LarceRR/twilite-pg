@@ -4,11 +4,13 @@ import { ImagePlus, Trash2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
 import { ApiError } from "@/shared/api/http";
+import { mediaCrossOrigin, mediaSrc } from "@/shared/api/mediaSrc";
 import { updateProfile, uploadAvatarFile } from "@/shared/api/users";
 import { userInitials } from "@/shared/lib/auth/userInitials";
 import { signOut, useSessionStore } from "@/shared/store/session";
 import LiquidGlassButton from "@/shared/ui/LiquidGlassButton/LiquidGlassButton";
 import Logo from "@/shared/ui/logo/Logo";
+import { toast } from "@/shared/ui/Toast";
 
 const CabinetPage: React.FC = () => {
   const user = useSessionStore((state) => state.user);
@@ -16,7 +18,6 @@ const CabinetPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [avatarBroken, setAvatarBroken] = useState(false);
 
   const hasAvatar = typeof user?.avatarUrl === "string" && user.avatarUrl.length > 0;
@@ -30,11 +31,13 @@ const CabinetPage: React.FC = () => {
     if (!file) return;
 
     setBusy(true);
-    setError(null);
     setSheetOpen(false);
 
     try {
       setUser(await uploadAvatarFile(file));
+      toast.success("Аватар обновлён", {
+        description: "Новое фото уже видно в профиле и в навигации.",
+      });
     } catch (err) {
       const message =
         err instanceof ApiError
@@ -42,7 +45,7 @@ const CabinetPage: React.FC = () => {
           : err instanceof Error
             ? err.message
             : "Не удалось обновить аватар";
-      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
       if (fileInputRef.current) {
@@ -53,11 +56,13 @@ const CabinetPage: React.FC = () => {
 
   async function onRemove(): Promise<void> {
     setBusy(true);
-    setError(null);
     setSheetOpen(false);
 
     try {
       setUser(await updateProfile({ avatarUrl: null }));
+      toast.success("Аватар удалён", {
+        description: "Вместо фото снова показываются инициалы.",
+      });
     } catch (err) {
       const message =
         err instanceof ApiError
@@ -65,7 +70,7 @@ const CabinetPage: React.FC = () => {
           : err instanceof Error
             ? err.message
             : "Не удалось удалить аватар";
-      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -89,7 +94,8 @@ const CabinetPage: React.FC = () => {
           <div className="cabinet__avatar" aria-hidden>
             {showPhoto ? (
               <img
-                src={user!.avatarUrl!}
+                src={mediaSrc(user!.avatarUrl!)}
+                crossOrigin={mediaCrossOrigin(user!.avatarUrl!)}
                 alt=""
                 className="cabinet__avatar-img"
                 onError={() => setAvatarBroken(true)}
@@ -105,7 +111,6 @@ const CabinetPage: React.FC = () => {
             <span className="cabinet__email">{user?.email ?? "—"}</span>
           </div>
         </button>
-        {error ? <p className="cabinet__error">{error}</p> : null}
         {busy ? <p className="cabinet__hint">Загружаем…</p> : null}
       </section>
 

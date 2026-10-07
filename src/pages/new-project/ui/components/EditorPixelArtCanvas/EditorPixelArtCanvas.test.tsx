@@ -78,13 +78,13 @@ describe("EditorPixelArtCanvas viewport and brush integration", () => {
       ctrlKey: true,
       deltaY: -100,
     });
-    expect(useEditorViewportStore.getState().zoom).toBe(4);
+    expect(useEditorViewportStore.getState().zoom).toBe(8);
 
     fireEvent.click(screen.getByRole("button", { name: "Вписать холст" }));
     expect(useEditorViewportStore.getState()).toMatchObject({
-      zoom: 3,
-      panX: 110,
-      panY: 30,
+      zoom: 7,
+      panX: 105,
+      panY: 25,
     });
   });
 
@@ -108,5 +108,26 @@ describe("EditorPixelArtCanvas viewport and brush integration", () => {
       }
     }
     expect(paintedPixels).toBe(4);
+  });
+
+  it("outlines the brush pixels under the cursor", () => {
+    useEditorSelectedToolStore.getState().setBrushShape("circle");
+    useEditorSelectedToolStore.getState().updateToolProperty("Size", 4);
+    useEditorSelectedToolStore.getState().updateToolProperty("Softness", 0);
+
+    const { container } = render(<EditorPixelArtCanvas />);
+    const canvas = container.querySelector("canvas")!;
+    expect(container.querySelector("[data-testid='tool-hover-zone']")).toBeNull();
+
+    fireEvent.pointerMove(canvas, { clientX: 182, clientY: 102 });
+
+    const zone = container.querySelector("[data-testid='tool-hover-zone']");
+    expect(zone).not.toBeNull();
+    expect(zone).toHaveAttribute("data-cell-count", "12");
+    expect(zone).toHaveAttribute("data-span-x", "4");
+    expect(zone).toHaveAttribute("data-span-y", "4");
+
+    fireEvent.pointerLeave(canvas);
+    expect(container.querySelector("[data-testid='tool-hover-zone']")).toBeNull();
   });
 });

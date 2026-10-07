@@ -59,12 +59,13 @@ describe("brush stamp masks", () => {
     const hard = getBrushStampMask("square", 5, 0);
     expect([...hard].every((a) => a === 255)).toBe(true);
 
-    // Softness 50: diagonal cell (1,1) is inside hard Chebyshev core for square
-    // but still in circle falloff — soft square must stay more opaque there.
+    // Softness 50: diagonal cell (1,1) is inside the hard Chebyshev core.
+    // Area sampling feathers only the outer corner of that cell, so the square
+    // stays near-opaque there while the circle is already in its falloff.
     const softSq = getBrushStampMask("square", 5, 50);
     const softCi = getBrushStampMask("circle", 5, 50);
     expect(softSq[12]).toBe(255);
-    expect(softSq[6]).toBe(255); // (1,1), Chebyshev t=0.5 ≤ H
+    expect(softSq[6]).toBeGreaterThan(220);
     expect(softCi[6]!).toBeLessThan(softSq[6]!);
     expect(softCi[6]!).toBeGreaterThan(0);
   });
@@ -83,6 +84,21 @@ describe("brush stamp masks", () => {
     expect(mid).toBeGreaterThan(0);
     expect(mid).toBeLessThan(255);
   });
+
+  it("spreads a full-soft circle into an even ramp instead of a dark fringe", () => {
+    const row = maskGrid("circle", 9, 100)[4]!;
+    const profile = row.slice(4);
+    for (let i = 1; i < profile.length; i += 1) {
+      expect(profile[i]!).toBeLessThanOrEqual(profile[i - 1]!);
+    }
+    expect(profile[0]).toBe(255);
+    expect(profile[profile.length - 1]!).toBeGreaterThan(0);
+    expect(profile[profile.length - 1]!).toBeLessThan(80);
+    // Two pixels out is near the middle of the radius, so alpha stays in the
+    // mid range. The old quadratic curve crushed this cell well below 100.
+    expect(profile[2]).toBeGreaterThan(100);
+    expect(profile[2]).toBeLessThan(200);
+  });
 });
 
 describe("falloffAlpha", () => {
@@ -90,7 +106,9 @@ describe("falloffAlpha", () => {
     expect(falloffAlpha(0, 1, 0)).toBe(255);
     expect(falloffAlpha(0.5, 1, 0)).toBe(255);
     expect(falloffAlpha(1.1, 0, 100)).toBe(0);
+    expect(falloffAlpha(1, 0, 100)).toBe(0);
     expect(falloffAlpha(0, 0, 100)).toBe(255);
+    expect(falloffAlpha(0.5, 0, 100)).toBe(128);
     expect(stampCellAlpha("square", 5, 50, 2, 2)).toBe(255);
   });
 });

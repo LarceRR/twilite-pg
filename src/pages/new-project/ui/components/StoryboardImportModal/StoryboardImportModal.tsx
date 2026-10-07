@@ -15,7 +15,6 @@ type GatePhase = "intro" | "pick";
 
 export function StoryboardImportModal({ onClose }: StoryboardImportModalProps) {
   const [phase, setPhase] = useState<GatePhase>("intro");
-  const [pickError, setPickError] = useState<string | null>(null);
   const [fileRequest, setFileRequest] = useState<ImportPixelateRequest | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -53,7 +52,7 @@ export function StoryboardImportModal({ onClose }: StoryboardImportModalProps) {
         <header className="import-pixelate__header">
           <h2 id="storyboard-gate-title">{title}</h2>
           <button type="button" className="import-pixelate__close" aria-label="Закрыть" onClick={onClose}>
-            <X size={16} aria-hidden="true" />
+            <X size={20} aria-hidden="true" />
           </button>
         </header>
         <div className="import-pixelate__body">{body}</div>
@@ -94,8 +93,6 @@ export function StoryboardImportModal({ onClose }: StoryboardImportModalProps) {
 
   return shell(
     <StoryboardImportPickFile
-      error={pickError}
-      onError={setPickError}
       onFile={(file) => {
         const classified = classifyImportFile(file);
         setFileRequest(

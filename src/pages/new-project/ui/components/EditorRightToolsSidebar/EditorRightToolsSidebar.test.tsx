@@ -14,10 +14,11 @@ describe("EditorRightToolsSidebar", () => {
     expect(screen.getAllByText("Слои")).toHaveLength(1);
     fireEvent.click(screen.getByText("Экспорт"));
 
-    expect(screen.getByRole("button", { name: "PNG кадра" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "PNG spritesheet" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Скачать TPO" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Отправить на модерацию" })).toBeDisabled();
-    expect(screen.getByText(/Недостаточно прав/)).toBeTruthy();
+    expect(screen.getByText("PNG кадра")).toBeTruthy();
+    expect(screen.getByText("Spritesheet")).toBeTruthy();
+    expect(screen.getByText("Пакет TPO")).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Скачать" })).toHaveLength(3);
+    // Without submit permission the catalog panel (and moderation CTA) stays hidden.
+    expect(screen.queryByRole("button", { name: "Отправить на модерацию" })).toBeNull();
   });
 });

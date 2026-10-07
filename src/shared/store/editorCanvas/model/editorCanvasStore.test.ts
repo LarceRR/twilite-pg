@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { MAX_LAYERS } from "./constants";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, MAX_LAYERS } from "./constants";
 import {
   __resetEditorCanvasStoreForTests,
   useEditorCanvasStore,
@@ -110,7 +110,7 @@ describe("editorCanvasStore layers", () => {
     });
 
     const pixels = useEditorCanvasStore.getState().getCompositePixels();
-    expect(pixels.length).toBe(160 * 160 * 4);
+    expect(pixels.length).toBe(CANVAS_WIDTH * CANVAS_HEIGHT * 4);
     expect(pixels[0]).toBeGreaterThan(100);
     expect(pixels[2]).toBeGreaterThan(100);
   });
@@ -129,7 +129,7 @@ describe("editorCanvasStore layers", () => {
     useEditorCanvasStore.getState().endStroke();
 
     const layer = useEditorCanvasStore.getState().getActiveLayer()!;
-    const a = layer.pixels[(5 * 160 + 5) * 4 + 3]!;
+    const a = layer.pixels[(5 * CANVAS_WIDTH + 5) * 4 + 3]!;
     expect(a).toBeLessThanOrEqual(255);
     expect(a).toBeGreaterThan(0);
   });
@@ -146,12 +146,12 @@ describe("editorCanvasStore layers", () => {
 
     store.previewStrokeSegment(1, 1, 3, 1);
     let pixels = useEditorCanvasStore.getState().getActiveLayer()!.pixels;
-    expect(pixels[(1 * 160 + 3) * 4 + 3]).toBe(255);
+    expect(pixels[(1 * CANVAS_WIDTH + 3) * 4 + 3]).toBe(255);
 
     useEditorCanvasStore.getState().previewStrokeSegment(1, 1, 1, 3);
     pixels = useEditorCanvasStore.getState().getActiveLayer()!.pixels;
-    expect(pixels[(1 * 160 + 3) * 4 + 3]).toBe(0);
-    expect(pixels[(3 * 160 + 1) * 4 + 3]).toBe(255);
+    expect(pixels[(1 * CANVAS_WIDTH + 3) * 4 + 3]).toBe(0);
+    expect(pixels[(3 * CANVAS_WIDTH + 1) * 4 + 3]).toBe(255);
 
     useEditorCanvasStore.getState().endStroke();
     expect(useEditorCanvasStore.getState().getActiveUndoDepth()).toBe(1);
@@ -177,7 +177,7 @@ describe("editorCanvasStore layers", () => {
     expect(state.isDrawing).toBe(false);
     expect(state.getActiveUndoDepth()).toBe(0);
     expect(state.canRedo()).toBe(true);
-    expect(state.getActiveLayer()!.pixels[(1 * 160 + 4) * 4 + 3]).toBe(0);
+    expect(state.getActiveLayer()!.pixels[(1 * CANVAS_WIDTH + 4) * 4 + 3]).toBe(0);
   });
 
   it("fills only the active layer and restores it with one undo step", () => {
@@ -185,31 +185,31 @@ describe("editorCanvasStore layers", () => {
     const layer = store.getActiveLayer()!;
     const red = hexToRgba("#ff0000");
     for (let x = 10; x <= 14; x += 1) {
-      setPixel(layer.pixels, 160, 160, x, 10, red);
-      setPixel(layer.pixels, 160, 160, x, 14, red);
+      setPixel(layer.pixels, CANVAS_WIDTH, CANVAS_HEIGHT, x, 10, red);
+      setPixel(layer.pixels, CANVAS_WIDTH, CANVAS_HEIGHT, x, 14, red);
     }
     for (let y = 11; y <= 13; y += 1) {
-      setPixel(layer.pixels, 160, 160, 10, y, red);
-      setPixel(layer.pixels, 160, 160, 14, y, red);
+      setPixel(layer.pixels, CANVAS_WIDTH, CANVAS_HEIGHT, 10, y, red);
+      setPixel(layer.pixels, CANVAS_WIDTH, CANVAS_HEIGHT, 14, y, red);
     }
 
     const result = useEditorCanvasStore.getState().fillAt(12, 12, hexToRgba("#0000ff"));
     expect(result).toEqual({ ok: true, filledPixels: 9 });
 
     const filled = useEditorCanvasStore.getState().getActiveLayer()!.pixels;
-    expect(filled[(12 * 160 + 12) * 4 + 2]).toBe(255);
-    expect(filled[(9 * 160 + 12) * 4 + 3]).toBe(0);
+    expect(filled[(12 * CANVAS_WIDTH + 12) * 4 + 2]).toBe(255);
+    expect(filled[(9 * CANVAS_WIDTH + 12) * 4 + 3]).toBe(0);
     expect(useEditorCanvasStore.getState().getActiveUndoDepth()).toBe(1);
 
     useEditorCanvasStore.getState().undo();
     const restored = useEditorCanvasStore.getState().getActiveLayer()!.pixels;
-    expect(restored[(12 * 160 + 12) * 4 + 3]).toBe(0);
-    expect(restored[(10 * 160 + 10) * 4]).toBe(255);
+    expect(restored[(12 * CANVAS_WIDTH + 12) * 4 + 3]).toBe(0);
+    expect(restored[(10 * CANVAS_WIDTH + 10) * 4]).toBe(255);
   });
 
   it("does not push undo when the fill color matches the seed", () => {
     const layer = useEditorCanvasStore.getState().getActiveLayer()!;
-    setPixel(layer.pixels, 160, 160, 4, 4, hexToRgba("#ff0000"));
+    setPixel(layer.pixels, CANVAS_WIDTH, CANVAS_HEIGHT, 4, 4, hexToRgba("#ff0000"));
     const result = useEditorCanvasStore.getState().fillAt(4, 4, hexToRgba("#ff0000"));
     expect(result).toEqual({ ok: true, filledPixels: 0 });
     expect(useEditorCanvasStore.getState().getActiveUndoDepth()).toBe(0);
