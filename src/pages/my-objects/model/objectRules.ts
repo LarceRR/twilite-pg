@@ -81,3 +81,28 @@ export function removalSuccess(erased: number, reassigned: number): {
     description: "Черновики удалены. Опубликованные переданы Twilite и остаются в каталоге.",
   };
 }
+
+/** Twilite system user: full removal from the app, any status. */
+export function purgeConfirm(items: readonly PixelObjectDto[]): {
+  title: string;
+  description: string;
+} {
+  const title =
+    items.length === 1
+      ? `Удалить «${items[0]?.title ?? ""}» из Twilite App?`
+      : `Удалить ${formatObjectCount(items.length)} из Twilite App?`;
+  return {
+    title,
+    description:
+      items.length === 1
+        ? "Вы действительно хотите удалить объект из Twilite App? Он пропадёт из каталога и с поверхностей пользователей, файлы удалятся безвозвратно."
+        : "Вы действительно хотите удалить объекты из Twilite App? Они пропадут из каталога и с поверхностей пользователей, файлы удалятся безвозвратно.",
+  };
+}
+
+export function purgeSuccess(count: number): { title: string; description: string } {
+  return {
+    title: count === 1 ? "Объект удалён из Twilite App" : "Объекты удалены из Twilite App",
+    description: "Файлы и размещения на поверхностях тоже удалены.",
+  };
+}

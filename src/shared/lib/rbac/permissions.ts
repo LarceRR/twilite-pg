@@ -4,6 +4,7 @@ export const TPG_PERMISSIONS = {
   EDITOR_CREATE_PROJECT: "tpg.editor.createProject",
   EDITOR_EDIT: "tpg.editor.edit",
   EDITOR_DELETE: "tpg.editor.delete",
+  EDITOR_PURGE: "tpg.editor.purge",
   PIXELATE_USE: "tpg.pixelate.use",
   THEMES_CREATE: "tpg.themes.create",
   THEMES_MODERATE: "tpg.themes.moderate",
@@ -11,4 +12,5 @@ export const TPG_PERMISSIONS = {
   PIXEL_OBJECTS_SUBMIT: "tpg.pixelObjects.submit",
   PIXEL_OBJECTS_MODERATE: "tpg.pixelObjects.moderate",
   PIXEL_OBJECTS_READ: "tpg.pixelObjects.readPublished",
+  PIXEL_OBJECTS_PURGE: "tpg.pixelObjects.purge",
 } as const;

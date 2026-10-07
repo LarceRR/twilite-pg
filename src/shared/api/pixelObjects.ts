@@ -152,6 +152,14 @@ export async function deletePixelObject(id: string): Promise<DeletePixelObjectRe
   return { outcome: data.outcome === "reassigned" ? "reassigned" : "deleted" };
 }
 
+/**
+ * Hard delete (admin, `tpg.pixelObjects.purge`): any status, revisions and files erased,
+ * surface placements unlinked (204).
+ */
+export async function purgePixelObject(id: string): Promise<void> {
+  await apiFetch(`/v1/tpg/pixel-objects/${id}/permanent`, { method: "DELETE" });
+}
+
 export function moderationErrorMessage(error: unknown): string {
   return mapApiErrorMessage(error, "Не удалось отправить объект.");
 }

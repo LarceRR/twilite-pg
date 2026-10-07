@@ -37,6 +37,14 @@ export type ProjectAvatarUploadTicket = {
   };
 };
 
+export type BatchDeleteResponse = {
+  deleted: number;
+};
+
+export type BatchPurgeResponse = {
+  purged: number;
+};
+
 export async function listMyProjects(): Promise<ProjectDto[]> {
   const response = await apiFetch("/v1/tpg/projects/mine");
   const data = (await response.json()) as ProjectListResponse;
@@ -76,9 +84,39 @@ export async function updateProject(
   return response.json() as Promise<ProjectDto>;
 }
 
+/** Soft delete: the project is handed to the Twilite system user. */
 export async function deleteProject(id: string): Promise<ProjectDto> {
   const response = await apiFetch(`/v1/tpg/projects/${id}`, { method: "DELETE" });
   return response.json() as Promise<ProjectDto>;
+}
+
+/** Hard delete (admin, `tpg.editor.purge`): project, all its objects and files are erased (204). */
+export async function purgeProject(id: string): Promise<void> {
+  await apiFetch(`/v1/tpg/projects/${id}/permanent`, { method: "DELETE" });
+}
+
+/** Soft delete multiple projects at once. */
+export async function bulkDeleteProjects(projectIds: string[]): Promise<BatchDeleteResponse> {
+  if (projectIds.length === 0) {
+    return { deleted: 0 };
+  }
+  const response = await apiFetch("/v1/tpg/projects/batch/delete", {
+    method: "POST",
+    body: JSON.stringify({ projectIds }),
+  });
+  return response.json() as Promise<BatchDeleteResponse>;
+}
+
+/** Hard delete multiple projects at once (admin only). */
+export async function bulkPurgeProjects(projectIds: string[]): Promise<BatchPurgeResponse> {
+  if (projectIds.length === 0) {
+    return { purged: 0 };
+  }
+  const response = await apiFetch("/v1/tpg/projects/batch/purge", {
+    method: "POST",
+    body: JSON.stringify({ projectIds }),
+  });
+  return response.json() as Promise<BatchPurgeResponse>;
 }
 
 export async function reassignProject(id: string, toUserId: string): Promise<ProjectDto> {

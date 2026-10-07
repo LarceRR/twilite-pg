@@ -2,14 +2,19 @@ import { useCallback, useEffect, useState } from "react";
 
 import { mapApiErrorMessage } from "@/shared/api/mapApiError";
 import {
+  bulkDeleteProjects,
+  bulkPurgeProjects,
   createProject,
   deleteProject,
   listMyProjects,
   type ProjectDto,
+  purgeProject,
   updateProject,
   uploadProjectAvatarFile,
 } from "@/shared/api/projects";
 import { TPG_PERMISSIONS, usePermissions } from "@/shared/lib/rbac";
+import { isTwiliteSystemUser } from "@/shared/lib/twiliteSystemUser";
+import { useSessionStore } from "@/shared/store/session/model/sessionStore";
 import { confirm } from "@/shared/ui/Confirm";
 import { toast } from "@/shared/ui/Toast";
 
@@ -17,9 +22,12 @@ import { pickEmptyHero } from "./projectFormatters";
 
 export function useMyProjects() {
   const { hasPermission } = usePermissions();
+  const userEmail = useSessionStore((state) => state.user?.email ?? null);
+  const canPurge =
+    isTwiliteSystemUser(userEmail) && hasPermission(TPG_PERMISSIONS.EDITOR_PURGE);
   const canCreate = hasPermission(TPG_PERMISSIONS.EDITOR_CREATE_PROJECT);
   const canEdit = hasPermission(TPG_PERMISSIONS.EDITOR_EDIT);
-  const canDelete = hasPermission(TPG_PERMISSIONS.EDITOR_DELETE);
+  const canDelete = canPurge || hasPermission(TPG_PERMISSIONS.EDITOR_DELETE);
   const canCreateObject =
     hasPermission(TPG_PERMISSIONS.PIXEL_OBJECTS_CREATE) ||
     hasPermission(TPG_PERMISSIONS.PIXEL_OBJECTS_SUBMIT);
@@ -27,6 +35,8 @@ export function useMyProjects() {
   const [items, setItems] = useState<ProjectDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
   const [createDescription, setCreateDescription] = useState("");
   const [creating, setCreating] = useState(false);
@@ -58,6 +68,29 @@ export function useMyProjects() {
     if (!creating) {
       setCreateOpen(false);
     }
+  }
+
+  function toggleSelect(projectId: string): void {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(projectId)) {
+        next.delete(projectId);
+      } else {
+        next.add(projectId);
+      }
+      return next;
+    });
+  }
+
+  function selectAll(): void {
+    const selectableIds = items
+      .filter((p) => p.isReassignmentInbox !== true && canDelete)
+      .map((p) => p.id);
+    setSelected(new Set(selectableIds));
+  }
+
+  function clearSelection(): void {
+    setSelected(new Set());
   }
 
   async function create(): Promise<void> {
@@ -105,10 +138,44 @@ export function useMyProjects() {
     }
   }
 
+  async function purge(project: ProjectDto): Promise<void> {
+    const objectsNote =
+      project.objectCount > 0
+        ? ` Вместе с ним безвозвратно удалятся все его объекты (${project.objectCount}), их файлы и размещения на поверхностях.`
+        : " Проект удалится безвозвратно.";
+    const ok = await confirm({
+      title: `Удалить проект «${project.title}» из Twilite App?`,
+      description: `Вы действительно хотите удалить проект из Twilite App?${objectsNote}`,
+      confirmLabel: "Удалить навсегда",
+      danger: true,
+    });
+    if (!ok) {
+      return;
+    }
+    setBusyId(project.id);
+    try {
+      await purgeProject(project.id);
+      setItems((prev) => prev.filter((item) => item.id !== project.id));
+      toast.success("Проект удалён из Twilite App", {
+        description: "Проект, его объекты и файлы стёрты.",
+      });
+    } catch (caught) {
+      toast.error(mapApiErrorMessage(caught, "Не удалось удалить проект из Twilite App."));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function remove(project: ProjectDto): Promise<void> {
+    if (canPurge) {
+      await purge(project);
+      return;
+    }
+
     const ok = await confirm({
       title: `Удалить проект «${project.title}»?`,
-      description: "Проект будет передан нам, чтобы пользователи, которые уже использоуют его, ",
+      description:
+        "Проект пропадёт из вашего списка и перейдёт Twilite, чтобы у пользователей, которые уже используют его объекты, ничего не сломалось.",
       confirmLabel: "Удалить",
       danger: true,
     });
@@ -126,6 +193,45 @@ export function useMyProjects() {
       toast.error(mapApiErrorMessage(caught, "Не удалось удалить проект."));
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function bulkRemove(): Promise<void> {
+    if (selected.size === 0) {
+      return;
+    }
+    const selectedProjects = items.filter((p) => selected.has(p.id));
+    const ok = await confirm({
+      title: `Удалить ${selectedProjects.length} проектов?`,
+      description: canPurge
+        ? "Они будут удалены из Twilite App вместе с объектами и файлами."
+        : "Они будут переданы Twilite, объекты сохранятся.",
+      confirmLabel: "Удалить все",
+      danger: true,
+    });
+    if (!ok) {
+      return;
+    }
+    setBulkBusy(true);
+    try {
+      const projectIds = selectedProjects.map((p) => p.id);
+      if (canPurge) {
+        const result = await bulkPurgeProjects(projectIds);
+        toast.success("Проекты удалены из Twilite App", {
+          description: `${result.purged} проектов, юр объекты и файлы стерты.`,
+        });
+      } else {
+        const result = await bulkDeleteProjects(projectIds);
+        toast.success("Проекты удалены", {
+          description: `${result.deleted} проектов передано Twilite.`,
+        });
+      }
+      setItems((prev) => prev.filter((p) => !selected.has(p.id)));
+      setSelected(new Set());
+    } catch (caught) {
+      toast.error(mapApiErrorMessage(caught, "Не удалось удалить проекты."));
+    } finally {
+      setBulkBusy(false);
     }
   }
 
@@ -155,6 +261,7 @@ export function useMyProjects() {
     canCreate,
     canEdit,
     canDelete,
+    canPurge,
     canCreateObject,
     createOpen,
     createTitle,
@@ -162,11 +269,17 @@ export function useMyProjects() {
     creating,
     setCreateTitle,
     setCreateDescription,
+    selected,
+    bulkBusy,
     openCreate,
     closeCreate,
     create,
     rename,
     remove,
     uploadAvatar,
+    toggleSelect,
+    selectAll,
+    clearSelection,
+    bulkRemove,
   };
 }
