@@ -6,10 +6,13 @@ import {
   deleteProject,
   listMyProjects,
   type ProjectDto,
+  purgeProject,
   updateProject,
   uploadProjectAvatarFile,
 } from "@/shared/api/projects";
 import { TPG_PERMISSIONS, usePermissions } from "@/shared/lib/rbac";
+import { isTwiliteSystemUser } from "@/shared/lib/twiliteSystemUser";
+import { useSessionStore } from "@/shared/store/session/model/sessionStore";
 import { confirm } from "@/shared/ui/Confirm";
 import { toast } from "@/shared/ui/Toast";
 
@@ -17,9 +20,13 @@ import { pickEmptyHero } from "./projectFormatters";
 
 export function useMyProjects() {
   const { hasPermission } = usePermissions();
+  const userEmail = useSessionStore((state) => state.user?.email ?? null);
+  /** Twilite system user removes projects from the app entirely instead of handing them over. */
+  const canPurge =
+    isTwiliteSystemUser(userEmail) && hasPermission(TPG_PERMISSIONS.EDITOR_PURGE);
   const canCreate = hasPermission(TPG_PERMISSIONS.EDITOR_CREATE_PROJECT);
   const canEdit = hasPermission(TPG_PERMISSIONS.EDITOR_EDIT);
-  const canDelete = hasPermission(TPG_PERMISSIONS.EDITOR_DELETE);
+  const canDelete = canPurge || hasPermission(TPG_PERMISSIONS.EDITOR_DELETE);
   const canCreateObject =
     hasPermission(TPG_PERMISSIONS.PIXEL_OBJECTS_CREATE) ||
     hasPermission(TPG_PERMISSIONS.PIXEL_OBJECTS_SUBMIT);
@@ -105,10 +112,44 @@ export function useMyProjects() {
     }
   }
 
+  async function purge(project: ProjectDto): Promise<void> {
+    const objectsNote =
+      project.objectCount > 0
+        ? ` Вместе с ним безвозвратно удалятся все его объекты (${project.objectCount}), их файлы и размещения на поверхностях.`
+        : " Проект удалится безвозвратно.";
+    const ok = await confirm({
+      title: `Удалить проект «${project.title}» из Twilite App?`,
+      description: `Вы действительно хотите удалить проект из Twilite App?${objectsNote}`,
+      confirmLabel: "Удалить навсегда",
+      danger: true,
+    });
+    if (!ok) {
+      return;
+    }
+    setBusyId(project.id);
+    try {
+      await purgeProject(project.id);
+      setItems((prev) => prev.filter((item) => item.id !== project.id));
+      toast.success("Проект удалён из Twilite App", {
+        description: "Проект, его объекты и файлы стёрты.",
+      });
+    } catch (caught) {
+      toast.error(mapApiErrorMessage(caught, "Не удалось удалить проект из Twilite App."));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function remove(project: ProjectDto): Promise<void> {
+    if (canPurge) {
+      await purge(project);
+      return;
+    }
+
     const ok = await confirm({
       title: `Удалить проект «${project.title}»?`,
-      description: "Проект будет передан нам, чтобы пользователи, которые уже использоуют его, ",
+      description:
+        "Проект пропадёт из вашего списка и перейдёт Twilite, чтобы у пользователей, которые уже используют его объекты, ничего не сломалось.",
       confirmLabel: "Удалить",
       danger: true,
     });
@@ -155,6 +196,7 @@ export function useMyProjects() {
     canCreate,
     canEdit,
     canDelete,
+    canPurge,
     canCreateObject,
     createOpen,
     createTitle,

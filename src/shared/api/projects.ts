@@ -76,9 +76,15 @@ export async function updateProject(
   return response.json() as Promise<ProjectDto>;
 }
 
+/** Soft delete: the project is handed to the Twilite system user. */
 export async function deleteProject(id: string): Promise<ProjectDto> {
   const response = await apiFetch(`/v1/tpg/projects/${id}`, { method: "DELETE" });
   return response.json() as Promise<ProjectDto>;
+}
+
+/** Hard delete (admin, `tpg.editor.purge`): project, all its objects and files are erased (204). */
+export async function purgeProject(id: string): Promise<void> {
+  await apiFetch(`/v1/tpg/projects/${id}/permanent`, { method: "DELETE" });
 }
 
 export async function reassignProject(id: string, toUserId: string): Promise<ProjectDto> {
