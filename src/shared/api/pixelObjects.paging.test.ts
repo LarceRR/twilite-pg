@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  archivePixelObject,
+  deletePixelObject,
   listMyPixelObjectsPage,
   listPixelObjectModerationPage,
   listPublishedPixelObjectsPage,
@@ -36,20 +36,28 @@ describe("pixelObjects list pagination", () => {
   });
 });
 
-describe("archivePixelObject", () => {
+describe("deletePixelObject", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("POSTs to archive endpoint", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ id: "obj-1", status: "archived" }), { status: 200 }),
-    );
+  it("treats 204 as a hard delete", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    await archivePixelObject("obj-1");
+    await expect(deletePixelObject("obj-1")).resolves.toEqual({ outcome: "deleted" });
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/v1/tpg/pixel-objects/obj-1");
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: "DELETE" });
+  });
 
-    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/v1/tpg/pixel-objects/obj-1/archive");
-    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: "POST" });
+  it("reads a reassignment outcome", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ outcome: "reassigned" }), { status: 200 }),
+      ),
+    );
+
+    await expect(deletePixelObject("obj-2")).resolves.toEqual({ outcome: "reassigned" });
   });
 });

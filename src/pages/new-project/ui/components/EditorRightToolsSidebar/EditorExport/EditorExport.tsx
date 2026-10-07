@@ -14,6 +14,7 @@ import { EXPORT_SCALES, type ExportScale } from "@/shared/pixelObject/constants"
 import { buildLocalManifest, fileSlug } from "@/shared/pixelObject/manifest";
 import { blobBytes, pixelsToPngBlob, toImageData } from "@/shared/pixelObject/png";
 import { compositeOnBackground, packSheet, scaleNearest } from "@/shared/pixelObject/pixels";
+import { PIXEL_OBJECT_TYPE_LABEL } from "@/shared/pixelObject/objectType";
 import { submitBlocker } from "@/shared/pixelObject/readiness";
 import {
   activeFrameIndexFromIds,
@@ -360,6 +361,9 @@ export const EditorExport = () => {
             <h3 className="editor-export__card-title">
               {editingObjectId ? "Повторная отправка (PATCH)" : "Отправка на модерацию"}
             </h3>
+            {catalog.objectType ? (
+              <p className="editor-export__card-lead">Тип: {PIXEL_OBJECT_TYPE_LABEL[catalog.objectType]}</p>
+            ) : null}
             <p className="editor-export__card-lead">
               {editingObjectId
                 ? "Создаётся новая pending-ревизия. Текущая опубликованная версия остаётся доступной."

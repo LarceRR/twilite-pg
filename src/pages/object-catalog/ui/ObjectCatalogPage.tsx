@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import {
-  archivePixelObject,
+  deletePixelObject,
   listMyPixelObjectsPage,
   listPublishedPixelObjectsPage,
   type PixelObjectDto,
 } from "@/shared/api/pixelObjects";
+import { canDeleteObject, removalConfirm, removalSuccess } from "@/pages/my-objects/model/objectRules";
 import { useCursorList } from "@/shared/hooks/useCursorList";
 import { mapApiErrorMessage } from "@/shared/api/mapApiError";
 import { loadPixelObjectIntoEditor } from "@/shared/pixelObject/loadPixelObjectIntoEditor";
@@ -30,10 +31,6 @@ function canOpenInEditor(item: PixelObjectDto): boolean {
   return item.status === "rejected" || item.status === "published";
 }
 
-function canDeleteObject(item: PixelObjectDto): boolean {
-  return item.status === "published";
-}
-
 export const ObjectCatalogPage = ({ mode }: ObjectCatalogPageProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -56,7 +53,7 @@ export const ObjectCatalogPage = ({ mode }: ObjectCatalogPageProps) => {
     setLoadingId(item.id);
     try {
       await loadPixelObjectIntoEditor(item);
-      navigate(`/new-project?projectId=${item.projectId}`);
+      navigate(`/new-project?projectId=${item.projectId}&edit=1`);
     } catch (caught) {
       toast.error(mapApiErrorMessage(caught, "Не удалось открыть объект в редакторе."));
     } finally {
@@ -66,8 +63,7 @@ export const ObjectCatalogPage = ({ mode }: ObjectCatalogPageProps) => {
 
   const removeObject = async (item: PixelObjectDto) => {
     const ok = await confirm({
-      title: `Удалить «${item.title}»?`,
-      description: "Объект скроется из каталога. Размещения на поверхностях останутся.",
+      ...removalConfirm([item]),
       confirmLabel: "Удалить",
       danger: true,
     });
@@ -76,11 +72,10 @@ export const ObjectCatalogPage = ({ mode }: ObjectCatalogPageProps) => {
     }
     setDeletingId(item.id);
     try {
-      await archivePixelObject(item.id);
+      const result = await deletePixelObject(item.id);
       list.removeItem(item.id);
-      toast.success("Объект удалён", {
-        description: "Он больше не показывается в каталоге.",
-      });
+      const success = removalSuccess(result.outcome === "deleted" ? 1 : 0, result.outcome === "reassigned" ? 1 : 0);
+      toast.success(success.title, { description: success.description });
     } catch (caught) {
       toast.error(mapApiErrorMessage(caught, "Не удалось удалить объект."));
     } finally {

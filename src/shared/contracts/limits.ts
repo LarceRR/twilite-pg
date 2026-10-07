@@ -18,7 +18,7 @@ export type PixelObjectLimits = {
 };
 
 export const DEFAULT_PIXEL_OBJECT_LIMITS = {
-  canvasMax: 160,
+  canvasMax: 70,
   maxFrames: 64,
   sheetMaxBytes: 8 * 1024 * 1024,
   minFrameDurationMs: 16,

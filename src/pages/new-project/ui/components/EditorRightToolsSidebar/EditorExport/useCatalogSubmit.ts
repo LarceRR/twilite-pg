@@ -4,6 +4,8 @@ import { useSearchParams } from "react-router";
 import { mapApiErrorMessage } from "@/shared/api/mapApiError";
 import { captureExportFrames } from "@/shared/pixelObject/capture";
 import { buildLocalManifest, toSubmitManifest } from "@/shared/pixelObject/manifest";
+import { parsePixelObjectType, type PixelObjectType } from "@/shared/pixelObject/objectType";
+import { removeObjectDraft, sealObjectDraft } from "@/shared/pixelObject/objectDraftStore";
 import { packSheet } from "@/shared/pixelObject/pixels";
 import { pixelsToPngBlob } from "@/shared/pixelObject/png";
 import { sheetTooLarge } from "@/shared/pixelObject/readiness";
@@ -25,9 +27,15 @@ export function useCatalogSubmit(title: string) {
   const pipelineRef = useRef<SubmitPipelineState | null>(null);
   const editingObjectId = usePixelObjectEditStore((state) => state.editingObjectId);
   const editingProjectId = usePixelObjectEditStore((state) => state.projectId);
+  const storedObjectType = usePixelObjectEditStore((state) => state.objectType);
   const clearEditingObject = usePixelObjectEditStore((state) => state.clearEditingObject);
   const sheetMaxBytes = usePixelObjectLimitsStore((state) => state.limits.sheetMaxBytes);
   const projectId = editingProjectId ?? projectIdFromQuery;
+  const queryObjectType = parsePixelObjectType(searchParams.get("objectType"));
+  const objectType: PixelObjectType | null = editingObjectId
+    ? storedObjectType
+    : (queryObjectType ?? storedObjectType);
+  const draftId = searchParams.get("draftId");
 
   const preparePackage = useCallback(async () => {
     const document = captureExportFrames();
@@ -56,6 +64,12 @@ export function useCatalogSubmit(title: string) {
       });
       return;
     }
+    if (!objectType) {
+      toast.warn("Нужен тип объекта", {
+        description: "Выберите хороший или плохой момент перед отправкой.",
+      });
+      return;
+    }
     setBusy(true);
     try {
       const packed = await preparePackage();
@@ -68,11 +82,20 @@ export function useCatalogSubmit(title: string) {
         sheet: packed.png,
         title: title.trim(),
         projectId,
+        objectType,
         buildManifest: (mediaId) => toSubmitManifest(packed.local, mediaId),
         state: prior,
         deps: defaultSubmitPipelineDeps({ resubmitId: editingObjectId }),
       });
       pipelineRef.current = result.state;
+      if (draftId && !editingObjectId) {
+        sealObjectDraft(draftId);
+        try {
+          await removeObjectDraft(draftId);
+        } catch {
+          // Submit already landed. A leftover browser card can be discarded from the project.
+        }
+      }
       clearEditingObject();
       toast.success("Объект успешно отправлен на модерацию");
     } catch (caught) {
@@ -86,12 +109,14 @@ export function useCatalogSubmit(title: string) {
   }, [
     busy,
     clearEditingObject,
+    draftId,
     editingObjectId,
+    objectType,
     preparePackage,
     projectId,
     sheetMaxBytes,
     title,
   ]);
 
-  return { busy, send, preparePackage, projectId };
+  return { busy, send, preparePackage, projectId, objectType };
 }

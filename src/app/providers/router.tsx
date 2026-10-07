@@ -10,6 +10,7 @@ import { LogInPage } from "@/pages/log-in";
 import { ThemeStudioPage } from "@/pages/theme-studio";
 import { ThemeModerationPage } from "@/pages/theme-moderation";
 import { PixelObjectModerationPage } from "@/pages/pixel-object-moderation";
+import { MyObjectsPage } from "@/pages/my-objects";
 import { ObjectCatalogPage } from "@/pages/object-catalog";
 import { RequireAuth } from "@/app/providers/RequireAuth";
 import { RequirePermission } from "@/app/providers/RequirePermission";
@@ -43,7 +44,7 @@ export const router = createBrowserRouter([
           <RequirePermission
             anyOf={[TPG_PERMISSIONS.PIXEL_OBJECTS_SUBMIT, TPG_PERMISSIONS.PIXEL_OBJECTS_CREATE]}
           >
-            <ObjectCatalogPage mode="mine" />
+            <MyObjectsPage />
           </RequirePermission>
         ),
       },

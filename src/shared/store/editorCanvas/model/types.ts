@@ -1,5 +1,6 @@
 import type { BrushShape } from "./brushShapes";
 import type { Rgba } from "./color";
+import type { EditorDraftSnapshot } from "./draftDocument";
 import type { EditorFrame, FrameId } from "./frames";
 import type { BlendMode, EditorLayer, LayerId } from "./layerTypes";
 import type { StrokePaintMode } from "./strokeCoverage";
@@ -155,6 +156,10 @@ export interface EditorCanvasState {
   ) => LayerOpResult;
   undo: () => void;
   redo: () => void;
+  /** Replace the document with a browser draft. False when the snapshot cannot be applied. */
+  loadDraft: (snapshot: EditorDraftSnapshot) => boolean;
+  /** Empty document at the default canvas size. */
+  resetDocument: () => void;
   clear: () => void;
 
   getCompositePixels: () => Uint8ClampedArray<ArrayBuffer>;

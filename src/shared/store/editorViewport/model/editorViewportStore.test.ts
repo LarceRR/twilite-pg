@@ -13,9 +13,9 @@ describe("editorViewportStore", () => {
       initialized: true,
       viewportWidth: 700,
       viewportHeight: 540,
-      zoom: 3,
-      panX: 110,
-      panY: 30,
+      zoom: 7,
+      panX: 105,
+      panY: 25,
     });
   });
 
@@ -29,7 +29,7 @@ describe("editorViewportStore", () => {
     useEditorViewportStore.getState().zoomBy(1, anchor);
     const after = useEditorViewportStore.getState();
 
-    expect(after.zoom).toBe(4);
+    expect(after.zoom).toBe(8);
     expect(Math.abs(worldX * after.zoom + after.panX - anchor.x)).toBeLessThanOrEqual(0.5);
     expect(Math.abs(worldY * after.zoom + after.panY - anchor.y)).toBeLessThanOrEqual(0.5);
   });
@@ -47,9 +47,9 @@ describe("editorViewportStore", () => {
 
     useEditorViewportStore.getState().resetToFit();
     expect(useEditorViewportStore.getState()).toMatchObject({
-      zoom: 2,
-      panX: 90,
-      panY: 40,
+      zoom: 5,
+      panX: 75,
+      panY: 25,
     });
   });
 });

@@ -12,6 +12,7 @@ import { useNavbarSearch } from "./useNavbarSearch";
 import SearchOverlay from "./components/SearchOverlay/SearchOverlay";
 import { APP_HOTKEYS } from "@/shared/const/hotkeys";
 import { useSessionStore } from "@/shared/store/session";
+import { mediaCrossOrigin, mediaSrc } from "@/shared/api/mediaSrc";
 import { userInitials } from "@/shared/lib/auth/userInitials";
 import { alert } from "@/shared/ui/Confirm";
 
@@ -82,7 +83,8 @@ export default function Navbar() {
         <NavLink to="/cabinet" className="navbar__avatar" aria-label="Открыть профиль">
           {avatarUrl && !avatarBroken ? (
             <img
-              src={avatarUrl}
+              src={mediaSrc(avatarUrl)}
+              crossOrigin={mediaCrossOrigin(avatarUrl)}
               alt=""
               className="navbar__avatar-photo"
               onError={() => setAvatarBroken(true)}

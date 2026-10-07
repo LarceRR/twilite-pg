@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from "@/shared/store/editorCanvas";
 import { getPixelObjectMobile } from "@/shared/api/pixelObjects";
+import { fetchPixelObjectSheet } from "@/shared/pixelObject/fetchPixelObjectSheet";
 import {
   createMobileSurface,
   isSupportedTpoMajor,
@@ -16,21 +18,29 @@ type LiveSheet = DecodedSheet & {
   source: CanvasImageSource;
 };
 
-/** Same approach as SheetPlayer: img src uses img-src, not fetch/connect-src + bucket CORS. */
+/** Sheet bytes come from the API, then a same-origin blob URL for the canvas. */
 async function decodeSheet(sheetUrl: string): Promise<LiveSheet> {
-  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const element = new Image();
-    element.onload = () => resolve(element);
-    element.onerror = () => reject(new Error("Не удалось декодировать spritesheet"));
-    element.src = sheetUrl;
-  });
-  return {
-    source: image,
-    close: () => {
-      image.onload = null;
-      image.src = "";
-    },
-  };
+  const blob = await fetchPixelObjectSheet(sheetUrl);
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("Не удалось декодировать spritesheet"));
+      element.src = objectUrl;
+    });
+    return {
+      source: image,
+      close: () => {
+        image.onload = null;
+        image.src = "";
+        URL.revokeObjectURL(objectUrl);
+      },
+    };
+  } catch (error) {
+    URL.revokeObjectURL(objectUrl);
+    throw error;
+  }
 }
 
 /**
@@ -151,7 +161,7 @@ export const MobileLoopPlayer = ({ objectId }: MobileLoopPlayerProps) => {
 
   return (
     <div ref={hostRef} className="mobile-loop">
-      <canvas ref={canvasRef} width={160} height={160} aria-label="Цикл объекта" />
+      <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} aria-label="Цикл объекта" />
       {message ? <p className="mobile-loop__message">{message}</p> : null}
     </div>
   );

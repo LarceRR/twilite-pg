@@ -56,7 +56,7 @@ describe("useEditorViewportInteractions", () => {
     fireEvent(viewport, event);
 
     expect(event.defaultPrevented).toBe(true);
-    expect(useEditorViewportStore.getState().zoom).toBe(4);
+    expect(useEditorViewportStore.getState().zoom).toBe(8);
   });
 
   it("remeasures the viewport before fitting the canvas", () => {
@@ -69,9 +69,9 @@ describe("useEditorViewportInteractions", () => {
     expect(useEditorViewportStore.getState()).toMatchObject({
       viewportWidth: 700,
       viewportHeight: 540,
-      zoom: 3,
-      panX: 110,
-      panY: 30,
+      zoom: 7,
+      panX: 105,
+      panY: 25,
     });
   });
 });

@@ -4,6 +4,7 @@ import { ImagePlus, Trash2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
 import { ApiError } from "@/shared/api/http";
+import { mediaCrossOrigin, mediaSrc } from "@/shared/api/mediaSrc";
 import { updateProfile, uploadAvatarFile } from "@/shared/api/users";
 import { userInitials } from "@/shared/lib/auth/userInitials";
 import { signOut, useSessionStore } from "@/shared/store/session";
@@ -93,7 +94,8 @@ const CabinetPage: React.FC = () => {
           <div className="cabinet__avatar" aria-hidden>
             {showPhoto ? (
               <img
-                src={user!.avatarUrl!}
+                src={mediaSrc(user!.avatarUrl!)}
+                crossOrigin={mediaCrossOrigin(user!.avatarUrl!)}
                 alt=""
                 className="cabinet__avatar-img"
                 onError={() => setAvatarBroken(true)}

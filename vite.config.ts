@@ -1,7 +1,7 @@
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
-import { defineConfig, loadEnv } from "vite";
 import path from "path";
+import { defineConfig, loadEnv } from "vite";
 
 function securityHeaders(isDev: boolean, apiBaseUrl: string): Record<string, string> {
   const connect = ["'self'"];
@@ -16,18 +16,12 @@ function securityHeaders(isDev: boolean, apiBaseUrl: string): Record<string, str
     connect.push(apiBaseUrl);
   }
 
-  // Presigned PUT uploads (R2 S3 API). Wildcards are not reliable in every browser for connect-src.
-  connect.push("https://*.r2.cloudflarestorage.com");
-  if (isDev) {
-    connect.push("https:");
-  } else {
-    connect.push("https://*.r2.dev");
-    if (apiBaseUrl.startsWith("https://")) {
-      try {
-        connect.push(new URL(apiBaseUrl).origin);
-      } catch {
-        // ignore invalid VITE_API_BASE_URL
-      }
+  let apiOrigin = "";
+  if (apiBaseUrl.length > 0) {
+    try {
+      apiOrigin = new URL(apiBaseUrl).origin;
+    } catch {
+      apiOrigin = "";
     }
   }
 
@@ -40,7 +34,7 @@ function securityHeaders(isDev: boolean, apiBaseUrl: string): Record<string, str
       "default-src 'self'",
       scriptSrc,
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
+      `img-src 'self' data: blob:${apiOrigin.length > 0 ? ` ${apiOrigin}` : ""}${isDev ? " http://localhost:3000 http://127.0.0.1:3000" : ""}`,
       `connect-src ${connect.join(" ")}`,
       "font-src 'self'",
       "object-src 'none'",

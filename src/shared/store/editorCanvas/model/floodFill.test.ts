@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { floodFill, samePixel } from "./floodFill";
+import { floodFill, markFloodRegion, samePixel } from "./floodFill";
 import type { Rgba } from "./color";
 
 const T: Rgba = [0, 0, 0, 0];
@@ -79,6 +79,17 @@ describe("floodFill", () => {
     expect(floodFill(pixels, 3, 3, 0, 1, GREEN)).toBe(6);
     expect(cell(pixels, 3, 1, 2)).toEqual(GREEN);
     expect(cell(pixels, 3, 2, 0)).toEqual(RED);
+  });
+
+  it("marks a flood region without changing pixels", () => {
+    const pixels = grid(["..R", "..R", "..R"]);
+    const before = pixels.slice();
+    const mask = new Uint8Array(9);
+    expect(markFloodRegion(pixels, mask, 3, 3, 0, 1)).toBe(6);
+    expect(Array.from(pixels)).toEqual(Array.from(before));
+    expect(mask[2]).toBe(0);
+    expect(mask[0]).toBe(1);
+    expect(mask[1]).toBe(1);
   });
 
   it("no-ops when the seed already matches, including transparent fill", () => {

@@ -2,10 +2,14 @@ import { apiFetch } from "@/shared/api/http";
 import { mapApiErrorMessage } from "@/shared/api/mapApiError";
 import { DEFAULT_PIXEL_OBJECT_LIMITS } from "@/shared/contracts";
 import type { SubmitTpoManifest } from "@/shared/pixelObject/manifest";
+import type { PixelObjectType } from "@/shared/pixelObject/objectType";
+
+export type { PixelObjectType };
 
 export type PixelObjectMobileDto = {
   id: string;
   title: string;
+  objectType: PixelObjectType;
   format: string;
   sheetUrl: string;
   canvas: { width: number; height: number };
@@ -26,6 +30,7 @@ export type PixelObjectDto = {
   id: string;
   projectId: string;
   title: string;
+  objectType: PixelObjectType;
   authorDisplayName: string;
   authorUserId: string;
   status: PixelObjectStatus;
@@ -131,10 +136,20 @@ export async function rejectPixelObject(id: string, comment: string): Promise<Pi
   return response.json() as Promise<PixelObjectDto>;
 }
 
-/** Soft-delete: hides from catalog; surface placements stay. Only published objects. */
-export async function archivePixelObject(id: string): Promise<PixelObjectDto> {
-  const response = await apiFetch(`/v1/tpg/pixel-objects/${id}/archive`, { method: "POST" });
-  return response.json() as Promise<PixelObjectDto>;
+export type DeletePixelObjectResult = {
+  outcome: "deleted" | "reassigned";
+};
+
+/**
+ * Drafts are erased (204). A published object is reassigned to Twilite and stays in the catalog.
+ */
+export async function deletePixelObject(id: string): Promise<DeletePixelObjectResult> {
+  const response = await apiFetch(`/v1/tpg/pixel-objects/${id}`, { method: "DELETE" });
+  if (response.status === 204) {
+    return { outcome: "deleted" };
+  }
+  const data = (await response.json()) as { outcome?: unknown };
+  return { outcome: data.outcome === "reassigned" ? "reassigned" : "deleted" };
 }
 
 export function moderationErrorMessage(error: unknown): string {

@@ -32,7 +32,7 @@ export const EDITOR_TOOLS: readonly IEditorTool[] = [
       {
         toolName: "Size",
         toolCurrentAmount: 4,
-        toolMaxAmount: 20,
+        toolMaxAmount: 100,
         toolMinAmount: 1,
       },
     ],
@@ -75,7 +75,7 @@ export const EDITOR_TOOLS: readonly IEditorTool[] = [
       {
         toolName: "Size",
         toolCurrentAmount: 4,
-        toolMaxAmount: 20,
+        toolMaxAmount: 100,
         toolMinAmount: 1,
       },
     ],

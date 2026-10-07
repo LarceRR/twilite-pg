@@ -65,6 +65,10 @@ export default function Sidebar({isCollapsed}: SidebarProps) {
                                     return null
                                 }
 
+                                if (item.path === AppRoutes[2].routes.IMAGEIMPORT.path) {
+                                    return null
+                                }
+
                                 return (
                                     <NavLink to={item.path} className='sidebar__routes-wrapper__links-link' key={i}>
                                         <item.icon size={20}/>

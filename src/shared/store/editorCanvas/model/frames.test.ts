@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { captureExportFrames } from "@/shared/pixelObject/capture";
 import { MAX_FRAMES } from "@/shared/pixelObject/constants";
 import { hexToRgba } from "./color";
+import { CANVAS_WIDTH } from "./constants";
 import { __resetEditorCanvasStoreForTests, useEditorCanvasStore } from "./editorCanvasStore";
 import { resetLayerIdSequence } from "./layerFactory";
 
@@ -9,7 +10,7 @@ const PIXEL_X = 4;
 const PIXEL_Y = 5;
 
 function alphaAt(pixels: Uint8ClampedArray, x = PIXEL_X, y = PIXEL_Y): number {
-  return pixels[(y * 160 + x) * 4 + 3] ?? 0;
+  return pixels[(y * CANVAS_WIDTH + x) * 4 + 3] ?? 0;
 }
 
 function paintDot(): void {

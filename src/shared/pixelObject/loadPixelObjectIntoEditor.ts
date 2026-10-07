@@ -1,4 +1,6 @@
+import { ApiError } from "@/shared/api/http";
 import type { PixelObjectDto } from "@/shared/api/pixelObjects";
+import { fetchPixelObjectSheet } from "@/shared/pixelObject/fetchPixelObjectSheet";
 import { unpackSheet } from "@/shared/pixelObject/pixels";
 import { useEditorCanvasStore } from "@/shared/store/editorCanvas";
 import { useEditorViewportStore } from "@/shared/store/editorViewport";
@@ -9,11 +11,15 @@ async function decodeSheetPng(url: string): Promise<{
   width: number;
   height: number;
 }> {
-  const response = await fetch(url, { credentials: "include" });
-  if (!response.ok) {
-    throw new Error(`Не удалось скачать spritesheet (${response.status})`);
+  let blob: Blob;
+  try {
+    blob = await fetchPixelObjectSheet(url);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw new Error(`Не удалось скачать spritesheet (${error.status})`);
+    }
+    throw new Error("Не удалось скачать spritesheet.");
   }
-  const blob = await response.blob();
   const bitmap = await createImageBitmap(blob);
   const canvas = document.createElement("canvas");
   canvas.width = bitmap.width;
@@ -42,8 +48,12 @@ function durationsFromManifest(item: PixelObjectDto): number[] {
  * Preserves title; never assumes the previous published head disappears.
  */
 export async function loadPixelObjectIntoEditor(item: PixelObjectDto): Promise<void> {
-  if (item.status === "pending") {
-    throw new Error("Объект на модерации — дождитесь решения, затем правьте при отклонении.");
+  if (item.status === "pending" || item.status === "archived") {
+    throw new Error(
+      item.status === "pending"
+        ? "Объект на модерации — дождитесь решения, затем правьте при отклонении."
+        : "Этот объект нельзя открыть в редакторе.",
+    );
   }
 
   const sheet = await decodeSheetPng(item.sheetUrl);
@@ -90,6 +100,7 @@ export async function loadPixelObjectIntoEditor(item: PixelObjectDto): Promise<v
     id: item.id,
     projectId: item.projectId,
     title: item.title,
+    objectType: item.objectType,
     status: item.status,
   });
 }

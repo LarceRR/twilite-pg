@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  CANVAS_WIDTH,
   __resetEditorCanvasStoreForTests,
   useEditorCanvasStore,
 } from "@/shared/store/editorCanvas";
@@ -58,6 +59,6 @@ describe("commitStoryboardImport", () => {
       frameDurationMs: 100,
     });
     expect(result.ok).toBe(false);
-    expect(useEditorCanvasStore.getState().width).toBe(160);
+    expect(useEditorCanvasStore.getState().width).toBe(CANVAS_WIDTH);
   });
 });

@@ -108,7 +108,7 @@ export function useMyProjects() {
   async function remove(project: ProjectDto): Promise<void> {
     const ok = await confirm({
       title: `Удалить проект «${project.title}»?`,
-      description: "Доступ перейдёт к Twilite, объекты останутся в системе.",
+      description: "Проект будет передан нам, чтобы пользователи, которые уже использоуют его, ",
       confirmLabel: "Удалить",
       danger: true,
     });

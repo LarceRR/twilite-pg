@@ -18,8 +18,8 @@ describe("shared contracts pin", () => {
     expect(isContractErrorCode("R2_KEY_LEAK")).toBe(false);
   });
 
-  it("matches default canvasMax 160 and sheet 8 MiB", () => {
-    expect(DEFAULT_PIXEL_OBJECT_LIMITS.canvasMax).toBe(160);
+  it("matches default canvasMax 70 and sheet 8 MiB", () => {
+    expect(DEFAULT_PIXEL_OBJECT_LIMITS.canvasMax).toBe(70);
     expect(DEFAULT_PIXEL_OBJECT_LIMITS.sheetMaxBytes).toBe(8 * 1024 * 1024);
     expect(DEFAULT_PIXEL_OBJECT_LIMITS.supportedFormat).toBe("twilite.pixelobject/v1");
   });

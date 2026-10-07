@@ -9,6 +9,7 @@ import { mapApiErrorMessage } from "@/shared/api/mapApiError";
 import { useCursorList } from "@/shared/hooks/useCursorList";
 import { toast } from "@/shared/ui/Toast";
 import { SheetPlayer } from "@/pages/new-project/ui/components/EditorRightToolsSidebar/EditorExport/SheetPlayer";
+import { PIXEL_OBJECT_TYPE_LABEL } from "@/shared/pixelObject/objectType";
 import "./PixelObjectModerationPage.scss";
 
 export function PixelObjectModerationPage(): ReactElement {
@@ -110,8 +111,8 @@ function ModerationCard(props: {
           <div className="pixel-object-moderation__body">
             <h2>{item.title}</h2>
             <p className="pixel-object-moderation__meta">
-              {item.authorDisplayName} · рев. {item.revision} ·{" "}
-              {new Date(item.createdAt).toLocaleString("ru-RU")}
+              {PIXEL_OBJECT_TYPE_LABEL[item.objectType]} · {item.authorDisplayName} · рев.{" "}
+              {item.revision} · {new Date(item.createdAt).toLocaleString("ru-RU")}
             </p>
             <div className="pixel-object-moderation__actions">
               <button

@@ -1,0 +1,27 @@
+.my-objects-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.my-objects-header__text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.65rem 0.85rem;
+  min-width: 0;
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+}
+
+.my-objects-header__count {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}

@@ -20,6 +20,7 @@ import {
   createFrameFromLayers,
   createFrameId,
   documentHasOpaquePixel,
+  type EditorFrame,
   duplicateLayerCels,
   emptyCel,
   projectFrame,
@@ -28,11 +29,13 @@ import {
   withLayerCel,
   withoutLayer,
 } from "./frames";
+import { maxNumericId, type EditorDraftSnapshot } from "./draftDocument";
 import {
   clampOpacity,
   createLayer,
   isBlendMode,
   isLayerDrawable,
+  resetLayerIdSequence,
 } from "./layerFactory";
 import {
   clonePixels,
@@ -1137,6 +1140,127 @@ export const useEditorCanvasStore = create<EditorCanvasState>((rawSet, get) => {
         undoStack: [...layer.undoStack, clonePixels(layer.pixels)],
       })),
       revision: bump(state.revision),
+    });
+  },
+
+  loadDraft: (snapshot: EditorDraftSnapshot): boolean => {
+    if (
+      !Number.isInteger(snapshot.width) ||
+      !Number.isInteger(snapshot.height) ||
+      snapshot.width < 1 ||
+      snapshot.height < 1 ||
+      snapshot.width > MAX_DOCUMENT_EDGE ||
+      snapshot.height > MAX_DOCUMENT_EDGE ||
+      snapshot.layers.length === 0 ||
+      snapshot.frames.length === 0
+    ) {
+      return false;
+    }
+    const expected = snapshot.width * snapshot.height * 4;
+    const activeFrame =
+      snapshot.frames.find((frame) => frame.id === snapshot.activeFrameId) ?? snapshot.frames[0];
+    if (!activeFrame) {
+      return false;
+    }
+    const activeLayerId = snapshot.layers.some((layer) => layer.id === snapshot.activeLayerId)
+      ? snapshot.activeLayerId
+      : snapshot.layers[0]!.id;
+
+    activeStroke = null;
+    redoStackBeforeStroke = null;
+    resetLayerIdSequence(maxNumericId(snapshot.layers.map((layer) => layer.id), "layer") + 1);
+    resetFrameIdSequence(maxNumericId(snapshot.frames.map((frame) => frame.id), "frame") + 1);
+
+    const layers = snapshot.layers.map((layer) => {
+      const stored = activeFrame.cels[layer.id]?.pixels;
+      const pixels =
+        stored instanceof Uint8ClampedArray && stored.length === expected
+          ? clonePixels(stored)
+          : createEmptyPixels(snapshot.width, snapshot.height);
+      return {
+        id: layer.id,
+        name: layer.name || "Слой",
+        visible: layer.visible,
+        locked: layer.locked,
+        opacity: clampOpacity(layer.opacity),
+        blendMode: isBlendMode(layer.blendMode) ? layer.blendMode : "normal",
+        pixels,
+        undoStack: [] as Uint8ClampedArray<ArrayBuffer>[],
+        redoStack: [] as Uint8ClampedArray<ArrayBuffer>[],
+      };
+    });
+
+    const frames = snapshot.frames.map((frame) => {
+      const cels: EditorFrame["cels"] = {};
+      for (const layer of layers) {
+        if (frame.id === activeFrame.id) {
+          cels[layer.id] = shareCel(layer);
+          continue;
+        }
+        const stored = frame.cels[layer.id]?.pixels;
+        cels[layer.id] = {
+          pixels:
+            stored instanceof Uint8ClampedArray && stored.length === expected
+              ? clonePixels(stored)
+              : createEmptyPixels(snapshot.width, snapshot.height),
+          undoStack: [],
+          redoStack: [],
+        };
+      }
+      return {
+        id: frame.id,
+        durationMs: clampDurationMs(frame.durationMs),
+        cels,
+      };
+    });
+
+    set({
+      width: snapshot.width,
+      height: snapshot.height,
+      layers,
+      activeLayerId,
+      frames,
+      activeFrameId: activeFrame.id,
+      onionSkin: snapshot.onionSkin,
+      isPlaying: false,
+      isDrawing: false,
+      revision: bump(get().revision),
+      primaryColor: snapshot.primaryColor || DEFAULT_PRIMARY_COLOR,
+      secondaryColor: snapshot.secondaryColor || DEFAULT_SECONDARY_COLOR,
+      selectionMask: null,
+      selectionDraft: null,
+      floatSession: null,
+      selectionClipboard: null,
+      lastPasteOrigin: null,
+    });
+    return true;
+  },
+
+  resetDocument: () => {
+    activeStroke = null;
+    redoStackBeforeStroke = null;
+    resetFrameIdSequence(1);
+    resetLayerIdSequence(1);
+    const layer = createLayer({ name: "Слой 1" });
+    const frame = createFrameFromLayers([layer]);
+    set({
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      layers: [layer],
+      activeLayerId: layer.id,
+      frames: [frame],
+      activeFrameId: frame.id,
+      onionSkin: false,
+      isPlaying: false,
+      revision: bump(get().revision),
+      primaryColor: DEFAULT_PRIMARY_COLOR,
+      secondaryColor: DEFAULT_SECONDARY_COLOR,
+      isDrawing: false,
+      selectionMask: null,
+      selectionDraft: null,
+      floatSession: null,
+      selectionClipboard: null,
+      lastPasteOrigin: null,
     });
   },
 

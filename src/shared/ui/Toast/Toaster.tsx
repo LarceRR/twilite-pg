@@ -19,7 +19,7 @@ export function Toaster() {
   const expanded = useToastStore((state) => state.expanded);
   const exitingIds = useToastStore((state) => state.exitingIds);
   const setExpanded = useToastStore((state) => state.setExpanded);
-  const listRef = useRef<HTMLOlElement>(null);
+  const listRef = useRef<HTMLOListElement>(null);
   const documentHidden = useDocumentHidden();
 
   const orderedIds = useMemo(() => toasts.map((item) => item.id), [toasts]);

@@ -13,7 +13,7 @@ type UseCursorListOptions = {
 export function useCursorList({ loadPage, limit = 30, enabled = true }: UseCursorListOptions) {
   const [items, setItems] = useState<PixelObjectDto[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(enabled);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const reload = useCallback(async () => {
@@ -21,6 +21,8 @@ export function useCursorList({ loadPage, limit = 30, enabled = true }: UseCurso
       return;
     }
     setLoading(true);
+    setItems([]);
+    setNextCursor(null);
     try {
       const page = await loadPage({ limit });
       setItems(page.items);
@@ -32,17 +34,19 @@ export function useCursorList({ loadPage, limit = 30, enabled = true }: UseCurso
     }
   }, [enabled, limit, loadPage]);
 
-  const loadMore = useCallback(async () => {
+  const loadMore = useCallback(async (): Promise<number> => {
     if (!enabled || !nextCursor || loadingMore) {
-      return;
+      return 0;
     }
     setLoadingMore(true);
     try {
       const page = await loadPage({ cursor: nextCursor, limit });
       setItems((prev) => [...prev, ...page.items]);
       setNextCursor(page.nextCursor);
+      return page.items.length;
     } catch (caught) {
       toast.error(mapApiErrorMessage(caught, "Не удалось загрузить следующую страницу."));
+      return 0;
     } finally {
       setLoadingMore(false);
     }

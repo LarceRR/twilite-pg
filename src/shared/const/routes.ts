@@ -58,7 +58,7 @@ export const AppRoutes = [
   },
   {
     label: 'Библиотека',
-    inSideBar: true,
+    inSideBar: false,
     routes: {
       FAVORITES: {
         path: "/favorites",

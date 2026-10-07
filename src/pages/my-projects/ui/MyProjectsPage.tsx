@@ -60,7 +60,7 @@ export function MyProjectsPage() {
               busy={projects.busyId === project.id}
               canCreateObject={projects.canCreateObject}
               canEdit={projects.canEdit}
-              canDelete={projects.canDelete}
+              canDelete={projects.canDelete && project.isReassignmentInbox !== true}
               onRename={(item) => void projects.rename(item)}
               onDelete={(item) => void projects.remove(item)}
               onAvatar={(item, file) => void projects.uploadAvatar(item, file)}

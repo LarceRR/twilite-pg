@@ -81,6 +81,8 @@ export const EditorToolSettiings = () => {
   const revision = useEditorCanvasStore((state) => state.revision);
   const isDrawing = useEditorCanvasStore((state) => state.isDrawing);
   const exportPngBlob = useEditorCanvasStore((state) => state.exportPngBlob);
+  const width = useEditorCanvasStore((state) => state.width);
+  const height = useEditorCanvasStore((state) => state.height);
 
   const activeLayer = useEditorCanvasStore((state) =>
     state.layers.find((layer) => layer.id === state.activeLayerId),
@@ -110,7 +112,7 @@ export const EditorToolSettiings = () => {
   const handleExport = async () => {
     try {
       const blob = await exportPngBlob();
-      downloadBlob(blob, "pixel-art-160.png");
+      downloadBlob(blob, `pixel-art-${width}x${height}.png`);
     } catch {
       // Export failures are rare (missing 2d context); keep UI quiet for MVP.
     }

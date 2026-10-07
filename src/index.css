@@ -46,8 +46,8 @@
   /* --- Фокус --- */
   --focus: oklch(48% 0.2 260);
 
-  --primary: oklch(0.83 0.16 79.85);
-  --primary-wash: oklch(0.92 0.08 79.85 / 0.17);
+  --primary: var(--accent);
+  --primary-wash: var(--accent-wash);
 }
 
 :root[data-theme="dark"] {
@@ -90,8 +90,8 @@
 
   --focus: oklch(75% 0.15 260);
 
-  --primary: oklch(0.83 0.16 79.85);
-  --primary-wash: oklch(0.92 0.08 79.85 / 0.17);
+  --primary: var(--accent);
+  --primary-wash: var(--accent-wash);
 }
 
 #root {

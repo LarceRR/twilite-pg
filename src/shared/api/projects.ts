@@ -1,4 +1,5 @@
 import { apiFetch } from "@/shared/api/http";
+import { putApiUpload } from "@/shared/api/putApiUpload";
 
 export type ProjectDto = {
   id: string;
@@ -8,6 +9,7 @@ export type ProjectDto = {
   ownerDisplayName: string;
   avatarUrl: string | null;
   objectCount: number;
+  isReassignmentInbox?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -122,17 +124,7 @@ export async function uploadProjectAvatarFile(
     contentType,
     byteSize: file.size,
   });
-  const upload = await fetch(ticket.uploadUrl, {
-    method: "PUT",
-    headers: {
-      "Content-Type": ticket.headers["Content-Type"],
-      "Cache-Control": ticket.headers["Cache-Control"],
-    },
-    body: file,
-  });
-  if (!upload.ok) {
-    throw new Error(`Не удалось загрузить аватар (${upload.status})`);
-  }
+  await putApiUpload(ticket.uploadUrl, file, ticket.headers);
   return confirmProjectAvatar(projectId, ticket.assetId);
 }
 

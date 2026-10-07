@@ -9,6 +9,7 @@ const baseItem: PixelObjectDto = {
   title: "Lantern",
   authorDisplayName: "Maku",
   authorUserId: "22222222-2222-4222-8222-222222222222",
+  objectType: "Good",
   status: "pending",
   rejectionComment: null,
   revision: 1,

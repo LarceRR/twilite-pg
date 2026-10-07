@@ -13,6 +13,7 @@ import {
 import { useEditorViewportInteractions } from "./useEditorViewportInteractions";
 import { usePixelCanvasPointer } from "./usePixelCanvasPointer";
 import { SelectionOverlay } from "./SelectionOverlay";
+import { ToolHoverZone } from "./ToolHoverZone";
 import "./EditorPixelArtCanvas.scss";
 
 export const EditorPixelArtCanvas = () => {
@@ -180,6 +181,7 @@ export const EditorPixelArtCanvas = () => {
           </svg>
         )}
         <SelectionOverlay />
+        <ToolHoverZone canvasRef={canvasRef} />
       </div>
 
       {pointer.fillStatus ? (

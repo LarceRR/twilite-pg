@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { applyCanvasFitToDocument } from "./applyCanvasFit";
-import { __resetEditorCanvasStoreForTests, useEditorCanvasStore } from "@/shared/store/editorCanvas";
+import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  __resetEditorCanvasStoreForTests,
+  useEditorCanvasStore,
+} from "@/shared/store/editorCanvas";
 import { resetLayerIdSequence } from "@/shared/store/editorCanvas/model/layerFactory";
 import { createEmptyPixels } from "@/shared/store/editorCanvas/model/pixels";
 
@@ -30,6 +35,6 @@ describe("applyCanvasFitToDocument", () => {
 
   it("center-crops without silently changing already-valid canvases", () => {
     const result = applyCanvasFitToDocument(160, "center-crop");
-    expect(result).toEqual({ ok: true, size: { width: 160, height: 160 } });
+    expect(result).toEqual({ ok: true, size: { width: CANVAS_WIDTH, height: CANVAS_HEIGHT } });
   });
 });

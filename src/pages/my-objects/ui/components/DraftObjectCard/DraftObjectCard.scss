@@ -1,0 +1,89 @@
+@use "@/shared/styles/mixins" as *;
+
+.draft-object-card {
+  @include catalog-card;
+}
+
+.draft-object-card__preview {
+  @include catalog-preview;
+  cursor: pointer;
+
+  img {
+    @include catalog-preview-media;
+    image-rendering: pixelated;
+    object-fit: contain;
+    background: repeating-conic-gradient(#0000 0% 25%, #00000010 0% 50%) 50% / 16px 16px;
+  }
+}
+
+.draft-object-card__badge,
+.draft-object-card__discard {
+  position: absolute;
+  top: 8px;
+  z-index: 2;
+}
+
+.draft-object-card__badge {
+  left: 8px;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--bg) 80%, transparent);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.draft-object-card__discard {
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--bg) 55%, transparent);
+  color: var(--text);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--bg) 80%, white);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.draft-object-card__empty {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.draft-object-card__body {
+  @include catalog-card-body;
+}
+
+.draft-object-card__title {
+  @include catalog-card-title;
+}
+
+.draft-object-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.draft-object-card__tag {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.draft-object-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  font-size: 12px;
+}

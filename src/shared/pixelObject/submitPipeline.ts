@@ -1,6 +1,8 @@
-import { apiFetch } from "@/shared/api/http";
+import { ApiError, apiFetch } from "@/shared/api/http";
 import { mapApiErrorMessage } from "@/shared/api/mapApiError";
+import { putApiUpload } from "@/shared/api/putApiUpload";
 import type { SubmitTpoManifest } from "@/shared/pixelObject/manifest";
+import type { PixelObjectType } from "@/shared/pixelObject/objectType";
 
 export type UploadTicket = {
   assetId: string;
@@ -41,7 +43,7 @@ export type SubmitPipelineDeps = {
   putSheet: (ticket: UploadTicket, sheet: Blob) => Promise<void>;
   confirmUpload: (assetId: string, idempotencyKey: string) => Promise<void>;
   submitObject: (
-    input: { title: string; projectId: string; manifest: SubmitTpoManifest },
+    input: { title: string; projectId: string; objectType: PixelObjectType; manifest: SubmitTpoManifest },
     idempotencyKey: string,
   ) => Promise<unknown>;
   fingerprint: (sheet: Blob) => string;
@@ -88,6 +90,7 @@ export async function runSubmitPipeline(input: {
   sheet: Blob;
   title: string;
   projectId: string;
+  objectType: PixelObjectType;
   buildManifest: (mediaId: string) => SubmitTpoManifest;
   state: SubmitPipelineState;
   deps: SubmitPipelineDeps;
@@ -107,6 +110,7 @@ export async function runSubmitPipeline(input: {
       {
         title: input.title,
         projectId: input.projectId,
+        objectType: input.objectType,
         manifest: input.buildManifest(mediaId),
       },
       state.submitKey,
@@ -197,16 +201,13 @@ export function defaultSubmitPipelineDeps(options?: {
       return response.json() as Promise<UploadTicket>;
     },
     putSheet: async (ticket, sheet) => {
-      const upload = await fetch(ticket.uploadUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": ticket.headers["Content-Type"],
-          "Cache-Control": ticket.headers["Cache-Control"],
-        },
-        body: sheet,
-      });
-      if (!upload.ok) {
-        throw new Error(`Не удалось загрузить spritesheet (${upload.status})`);
+      try {
+        await putApiUpload(ticket.uploadUrl, sheet, ticket.headers);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          throw new Error(`Не удалось загрузить spritesheet (${error.status})`);
+        }
+        throw error;
       }
     },
     confirmUpload: async (assetId, idempotencyKey) => {
